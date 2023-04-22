@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app: NestExpressApplication = await NestFactory.create(AppModule);
@@ -10,6 +11,7 @@ async function bootstrap() {
   const port: number = config.get<number>('PORT');
 
   app.useGlobalPipes(new ValidationPipe({whitelist: true}));
+  app.use(helmet());
 
   await app.listen(port, () => console.log('Listening on port', port));
 }

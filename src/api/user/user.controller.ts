@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, ClassSerializerInterceptor, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseInterceptors } from '@nestjs/common';
+import { SkipJwtAuth } from '../../common/decorators/skip-jwt.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entity/user.entity';
 import { UserService } from './user.service';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('users')
 export class UserController {
 
@@ -19,14 +21,15 @@ export class UserController {
     return this.userService.getUser(userId);
   }
 
+  @SkipJwtAuth()
   @Post()
   postUser(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.userService.postUser(createUserDto);
+    return this.userService.createUser(createUserDto);
   }
 
   @Put(':userId')
   putUser(@Param('userId', ParseIntPipe) userId: number, @Body() updateUserDto: UpdateUserDto): Promise<User> {
-    return this.userService.putUser(userId, updateUserDto);
+    return this.userService.updateUser(userId, updateUserDto);
   }
 
   @Delete(':userId')
