@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import * as _ from 'lodash';
 
 export interface User {
@@ -30,13 +32,18 @@ export class UserService {
     return this.users[userId];
   }
 
-  public postUser(user: User): User {
-    this.users.push(user);
-    return this.users[user.id];
+  public postUser(user: CreateUserDto): User {
+    const lastUser: User | {id: number} = _.last(this.users) ?? {id: -1};
+    const newUser: User = {
+      id: lastUser.id + 1,
+      ...user
+    };
+    this.users.push(newUser);
+    return this.users[newUser.id];
   }
 
-  public putUser(userId: number, user: User): User {
-    this.users[userId] = user;
+  public putUser(userId: number, user: UpdateUserDto): User {
+    this.users[userId] = {...this.users[userId], ...user};
     return this.users[userId];
   }
 
