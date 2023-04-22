@@ -1,56 +1,39 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entity/user.entity';
 import * as _ from 'lodash';
-
-export interface User {
-  id: number;
-  username: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UserService {
-  private users: User[] = [
-    {id: 0, username: 'testUser0', firstName: 'user', lastName: 'name', email: 'user@name0.com', password: 'someHash'},
-    {id: 1, username: 'testUser1', firstName: 'user', lastName: 'name', email: 'user@name1.com', password: 'someHash'},
-    {id: 2, username: 'testUser2', firstName: 'user', lastName: 'name', email: 'user@name2.com', password: 'someHash'},
-    {id: 3, username: 'testUser3', firstName: 'user', lastName: 'name', email: 'user@name3.com', password: 'someHash'},
-    {id: 4, username: 'testUser4', firstName: 'user', lastName: 'name', email: 'user@name4.com', password: 'someHash'},
-    {id: 5, username: 'testUser5', firstName: 'user', lastName: 'name', email: 'user@name5.com', password: 'someHash'},
-    {id: 6, username: 'testUser6', firstName: 'user', lastName: 'name', email: 'user@name6.com', password: 'someHash'}
-  ];
 
-  public getUsers(): User[] {
-    return this.users;
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>
+  ) {}
+
+  public getUsers(): Promise<User[]> {
+    return this.userRepository.find();
   }
 
-  public getUser(userId: number): User {
-    return this.users[userId];
+  public getUser(userId: number): Promise<User> {
+    return this.userRepository.findOneOrFail({where: {id: userId}});
   }
 
-  public postUser(user: CreateUserDto): User {
-    const lastUser: User | {id: number} = _.last(this.users) ?? {id: -1};
-    const newUser: User = {
-      id: lastUser.id + 1,
-      ...user
-    };
-    this.users.push(newUser);
-    return this.users[newUser.id];
+  public postUser(user: CreateUserDto): Promise<User> {
+    return this.userRepository.save(user);
   }
 
-  public putUser(userId: number, user: UpdateUserDto): User {
-    this.users[userId] = {...this.users[userId], ...user};
-    return this.users[userId];
+  public async putUser(userId: number, user: UpdateUserDto): Promise<User> {
+    const updateUser = await this.userRepository.findOneOrFail({where: {id: userId}});
+    await this.userRepository.update(userId, user);
+    return {...updateUser, ...user};
   }
 
-  public deleteUser(userId: number): User {
-    const tempUser = _.cloneDeep(this.users[userId]);
-    delete this.users[userId];
-    this.users = _.omitBy(this.users, _.isNil) as User[];
-    return tempUser;
+  public async deleteUser(userId: number): Promise<User> {
+    const user = await this.userRepository.findOne({where: {id: userId}});
+    return this.userRepository.remove(user);
   }
 }
