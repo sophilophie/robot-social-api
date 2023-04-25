@@ -15,11 +15,15 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto): Promise<JwtResponse> {
-    const loginUser = await this.userService.getUserByUsername(loginDto.username);
+    const loginUser= await this.userService.getUserByUsername(loginDto.username);
 
     if (loginUser && bcrypt.compareSync(loginDto.password, loginUser.password)) {
       const payload: JwtPayload = { username: loginUser.username, id: loginUser.id };
-      return { access_token: this.jwtService.sign(payload) };
+      delete loginUser.password;
+      return {
+        access_token: this.jwtService.sign(payload),
+        user: loginUser
+      };
     }
     throw new UnauthorizedException();
   }
