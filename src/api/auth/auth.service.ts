@@ -4,6 +4,7 @@ import { User } from '../user/entity/user.entity';
 import { UserService } from '../user/user.service';
 import { JwtPayload, JwtResponse } from './auth-types';
 import { LoginDto } from './dto/login.dto';
+import { RefreshUserDto } from '../user/dto/refresh-user.dto';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -23,6 +24,20 @@ export class AuthService {
       return {
         access_token: this.jwtService.sign(payload),
         user: loginUser
+      };
+    }
+    throw new UnauthorizedException();
+  }
+
+  async refresh(refreshDto: RefreshUserDto): Promise<JwtResponse> {
+    const decodedJwt = this.jwtService.decode(refreshDto.access_token);
+    const refreshUser: User = await this.userService.getUser((decodedJwt as JwtPayload).id);
+    if (refreshUser) {
+      const payload: JwtPayload = { username: refreshUser.username, id: refreshUser.id };
+      delete refreshUser.password;
+      return {
+        access_token: this.jwtService.sign(payload),
+        user: refreshUser
       };
     }
     throw new UnauthorizedException();
