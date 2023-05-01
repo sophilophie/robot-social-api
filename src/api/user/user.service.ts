@@ -6,14 +6,17 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as _ from 'lodash';
 import * as bcrypt from 'bcryptjs';
+import { JwtPayload, JwtResponse } from '../auth/auth-types';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
 
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>
-  ) {}
+    private userRepository: Repository<User>,
+    private jwtService: JwtService
+    ) {}
 
   public getUser(userId: number): Promise<User> {
     return this.userRepository.findOne({where: {id: userId}});
@@ -23,11 +26,15 @@ export class UserService {
     return this.userRepository.findOne({where: { username }});
   }
 
+  public getUserByEmail(email: string): Promise<User> {
+    return this.userRepository.findOne({where: { email }})
+  }
+
   public getUsers(): Promise<User[]> {
     return this.userRepository.find();
   }
 
-  public async createUser(user: CreateUserDto): Promise<User> {
+  public async createUser(user: CreateUserDto): Promise<JwtResponse> {
     const {
       username,
       firstName,
@@ -35,7 +42,8 @@ export class UserService {
       email,
       password
     }: CreateUserDto = user;
-    let createdUser = await this.getUserByUsername(username);
+    // It seems more likely that a conflicting username exists than a conflicting email, so we cascade.
+    let createdUser = await this.getUserByUsername(username) || await this.getUserByEmail(email);
     if (createdUser) throw new ConflictException();
     createdUser = new User();
     createdUser.username = username;
@@ -44,7 +52,14 @@ export class UserService {
     createdUser.email = email;
     createdUser.password = bcrypt.hashSync(password, bcrypt.genSaltSync());
     
-    return this.userRepository.save(createdUser);
+    const newUser = await this.userRepository.save(createdUser);
+    if (newUser) {
+      const payload: JwtPayload = { username: newUser.username, id: newUser.id };
+      return {
+        access_token: this.jwtService.sign(payload),
+        user: newUser
+      };
+    }
   }
 
   public async updateUser(userId: number, user: UpdateUserDto): Promise<User> {
