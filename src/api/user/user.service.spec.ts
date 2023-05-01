@@ -1,3 +1,4 @@
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -6,7 +7,7 @@ import { UserService } from './user.service';
 
 describe('UserService', () => {
   let service: any;
-  let mockUserRepository: any;
+  let mockUserRepository: any, mockJwtService: any;
 
   const mockUser: User = {
     id: 0,
@@ -25,11 +26,15 @@ describe('UserService', () => {
       update: jest.fn(),
       remove: jest.fn()
     };
+    mockJwtService = {
+      sign: jest.fn()
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [UserService],
     })
       .useMocker((token) => {
         if (token === 'UserRepository') return mockUserRepository;
+        if (token === JwtService) return mockJwtService;
       })
       .compile();
 
@@ -97,6 +102,7 @@ describe('UserService', () => {
     await service.createUser(createdUser);
     expect(mockUserRepository.findOne).toHaveBeenCalledWith({where: {username: 'testerUsecase1'}});
     expect(mockUserRepository.save).toHaveBeenCalled();
+    expect(mockJwtService.sign).toHaveBeenCalled();
   });
 
   it('should throw an error if user exists on create', async () => {
