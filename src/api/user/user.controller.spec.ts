@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
+import {Test, TestingModule} from '@nestjs/testing';
+import {CreateUserDto} from './dto/create-user.dto';
+import {UpdateUserDto} from './dto/update-user.dto';
+import {UserController} from './user.controller';
+import {UserService} from './user.service';
 
 describe('UserController', () => {
   let controller: UserController;
@@ -13,12 +13,12 @@ describe('UserController', () => {
     firstName: 'test',
     lastName: 'test',
     email: 'test@test.com',
-    password: 'someHash'
-  }
+    password: 'someHash',
+  };
 
   const testPutUserDto: UpdateUserDto = {
-    username: 'testUser0'
-  }
+    username: 'testUser0',
+  };
 
   beforeEach(async () => {
     mockUserService = {
@@ -26,8 +26,8 @@ describe('UserController', () => {
       getUser: jest.fn(),
       createUser: jest.fn(),
       updateUser: jest.fn(),
-      deleteUser: jest.fn()
-    }
+      deleteUser: jest.fn(),
+    };
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
     })
