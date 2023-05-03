@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { RefreshUserDto } from '../user/dto/refresh-user.dto';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
+import {Test, TestingModule} from '@nestjs/testing';
+import {RefreshUserDto} from '../user/dto/refresh-user.dto';
+import {AuthController} from './auth.controller';
+import {AuthService} from './auth.service';
+import {LoginDto} from './dto/login.dto';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -10,18 +10,18 @@ describe('AuthController', () => {
 
   const mockLoginDto: LoginDto = {
     username: 'testUser0',
-    password: 'someHash'
-  }
+    password: 'someHash',
+  };
 
   const mockRefreshDto: RefreshUserDto = {
-    access_token: 'SOME_HASH'
-  }
+    access_token: 'SOME_HASH',
+  };
 
   beforeEach(async () => {
     mockAuthService = {
       login: jest.fn(),
-      refresh: jest.fn()
-    }
+      refresh: jest.fn(),
+    };
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
     })
