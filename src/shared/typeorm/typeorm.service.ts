@@ -1,12 +1,21 @@
 import {Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {TypeOrmOptionsFactory, TypeOrmModuleOptions} from '@nestjs/typeorm';
+import {User} from '../../api/user/entity/user.entity';
 
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   constructor(private readonly config: ConfigService) {}
 
   public createTypeOrmOptions(): TypeOrmModuleOptions {
+    if (process.env.NODE_ENV === 'test') {
+      return {
+        type: 'sqlite',
+        database: ':memory:',
+        entities: [User],
+        synchronize: true,
+      };
+    }
     return {
       type: 'postgres',
       host: this.config.get<string>('DATABASE_HOST'),

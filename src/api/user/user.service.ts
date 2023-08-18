@@ -16,8 +16,10 @@ export class UserService {
     private readonly jwtService: JwtService,
   ) {}
 
-  public getUser(userId: number): Promise<User | null> {
-    return this.userRepository.findOne({where: {id: userId}});
+  public async getUser(userId: number): Promise<User | null> {
+    const foundUser = await this.userRepository.findOne({where: {id: userId}});
+    if (foundUser) return foundUser;
+    throw new NotFoundException();
   }
 
   public getUserByUsername(username: string): Promise<User | null> {
@@ -62,6 +64,7 @@ export class UserService {
     const updateUser = await this.userRepository.findOne({
       where: {id: userId},
     });
+    delete updateUser?.password;
     if (updateUser) {
       await this.userRepository.update(userId, user);
       return {...updateUser, ...user};
