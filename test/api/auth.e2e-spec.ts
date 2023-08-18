@@ -22,6 +22,7 @@ describe('user (e2e)', () => {
     lastName: 'auth',
     email: 'test@auth.com',
     id: 1,
+    friends: [],
   };
 
   beforeAll(async () => {

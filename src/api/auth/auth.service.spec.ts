@@ -18,6 +18,7 @@ describe('AuthService', () => {
     username: 'testUser0',
     password: 'someHash',
     email: 'test@user.com',
+    friends: [],
   };
 
   const mockLogin: LoginDto = {
