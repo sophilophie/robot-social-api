@@ -24,7 +24,7 @@ export class UserService {
     throw new NotFoundException();
   }
 
-  public getUserByUsername(username: string): Promise<User | null> {
+  private getUserByUsername(username: string): Promise<User | null> {
     return this.userRepository.findOne({where: {username}});
   }
 
@@ -122,6 +122,14 @@ export class UserService {
     const user = await this.userRepository.findOne({where: {id: userId}});
     if (user) {
       user.friends = await this.findFriendsByUserId(userId);
+    }
+    return user;
+  }
+
+  public async getUserAndFriendsbyUsername(username: string): Promise<User | null> {
+    const user = await this.getUserByUsername(username);
+    if (user) {
+      user.friends = await this.findFriendsByUserId(user.id);
     }
     return user;
   }

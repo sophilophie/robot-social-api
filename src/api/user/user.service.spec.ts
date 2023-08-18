@@ -17,6 +17,7 @@ describe('UserService', () => {
     username: 'testUser0',
     password: 'someHash',
     email: 'test@user.com',
+    friends: [],
   };
 
   beforeEach(async () => {
@@ -26,6 +27,7 @@ describe('UserService', () => {
       save: jest.fn().mockResolvedValue({}),
       update: jest.fn(),
       remove: jest.fn(),
+      query: jest.fn(),
     };
     mockJwtService = {
       sign: jest.fn(),
@@ -48,13 +50,12 @@ describe('UserService', () => {
 
   it('should find one user by id', async () => {
     const result: User | null = await service.getUser(0);
-    expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-      where: {id: 0},
-    });
+    expect(mockUserRepository.findOne).toHaveBeenCalledWith({where: {id: 0}});
+    expect(mockUserRepository.query).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
   });
 
-  it('should throw 404 if user is not found RUD operations', async () => {
+  it('should throw 404 if user is not found in read, update, or destroy operations', async () => {
     mockUserRepository.findOne = jest.fn();
     try {
       await service.getUser(0);
@@ -127,18 +128,15 @@ describe('UserService', () => {
   it('should update an existing user, returning the entire new user object', async () => {
     const updateUser: UpdateUserDto = {username: 'userName0'};
     const result: User = await service.updateUser(0, updateUser);
-    expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-      where: {id: 0},
-    });
+    expect(mockUserRepository.findOne).toHaveBeenCalledWith({where: {id: 0}});
+    expect(mockUserRepository.query).toHaveBeenCalled();
     expect(mockUserRepository.update).toHaveBeenCalledWith(0, updateUser);
     expect(result).toEqual({...mockUser, username: 'userName0'});
   });
 
   it('should delete an existing user, reterning the deleted user', async () => {
     await service.deleteUser(0);
-    expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-      where: {id: 0},
-    });
+    expect(mockUserRepository.findOne).toHaveBeenCalledWith({where: {id: 0}});
     expect(mockUserRepository.remove).toHaveBeenCalledWith(mockUser);
   });
 });

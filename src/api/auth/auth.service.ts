@@ -12,8 +12,9 @@ export class AuthService {
   constructor(private readonly userService: UserService, private readonly jwtService: JwtService) {}
 
   public async login(loginDto: LoginDto): Promise<JwtResponse> {
-    const loginUser = await this.userService.getUserByUsername(loginDto.username);
+    const loginUser = await this.userService.getUserAndFriendsbyUsername(loginDto.username);
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (loginUser && bcrypt.compareSync(loginDto.password, loginUser.password!)) {
       const payload: JwtPayload = {
         username: loginUser.username,

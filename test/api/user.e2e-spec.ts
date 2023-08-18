@@ -7,12 +7,25 @@ let accessToken: string;
 
 describe('user (e2e)', () => {
   let app: INestApplication;
-  const expectedResponseUser = {
-    username: 'TestUser0',
+  const expectedUser = {
+    username: 'TestUser1',
     firstName: 'test',
     lastName: 'user',
     email: 'test@email.com',
     id: 1,
+  };
+
+  const expectedUserAndFriends = {
+    ...expectedUser,
+    friends: [
+      {
+        username: 'TestUser2',
+        firstName: 'test2',
+        lastName: 'user2',
+        email: 'test2@email.com',
+        id: 2,
+      },
+    ],
   };
 
   beforeAll(async () => {
@@ -29,8 +42,8 @@ describe('user (e2e)', () => {
   });
 
   it('POST /users', () => {
-    const payload = {
-      username: 'TestUser0',
+    const newUserOne = {
+      username: 'TestUser1',
       firstName: 'test',
       lastName: 'user',
       email: 'test@email.com',
@@ -38,14 +51,46 @@ describe('user (e2e)', () => {
     };
     return request(app.getHttpServer())
       .post('/users')
-      .send(payload)
+      .send(newUserOne)
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .expect(201)
       .expect((res) => {
-        expect(res.body.user).toEqual(expectedResponseUser);
+        expect(res.body.user).toEqual(expectedUser);
         expect(res.body.access_token).toBeTruthy();
         accessToken = res.body.access_token as string;
+      });
+  });
+
+  it('POST /users/friendship', () => {
+    const newUserTwo = {
+      username: 'TestUser2',
+      firstName: 'test2',
+      lastName: 'user2',
+      email: 'test2@email.com',
+      password: 'TestPassword01',
+    };
+    const newFriendship = {
+      userId: 1,
+      friendId: 2,
+    };
+    return request(app.getHttpServer())
+      .post('/users')
+      .send(newUserTwo)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+      .then(() => {
+        return request(app.getHttpServer())
+          .post('/users/friendship')
+          .send(newFriendship)
+          .set('Content-Type', 'application/json')
+          .set('Accept', 'application/json')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(201)
+          .expect((res) => {
+            expect(res.body).toEqual(expectedUserAndFriends);
+          });
       });
   });
 
@@ -55,17 +100,24 @@ describe('user (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body).toEqual(expectedResponseUser);
+        expect(res.body).toEqual(expectedUserAndFriends);
       });
   });
 
   it('GET /users', () => {
+    const expectedUserTwo = {
+      username: 'TestUser2',
+      firstName: 'test2',
+      lastName: 'user2',
+      email: 'test2@email.com',
+      id: 2,
+    };
     return request(app.getHttpServer())
       .get('/users')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body).toEqual([expectedResponseUser]);
+        expect(res.body).toEqual([expectedUser, expectedUserTwo]);
         expect(res.body instanceof Array).toBe(true);
       });
   });
@@ -78,35 +130,19 @@ describe('user (e2e)', () => {
       .expect(200)
       .expect((res) => {
         expect(res.body).toEqual({
-          ...expectedResponseUser,
+          ...expectedUserAndFriends,
           email: 'newTest@email.com',
         });
       });
   });
 
   it('DELETE /users/:id', () => {
-    const testUserTwo = {
-      username: 'Tester2',
-      firstName: 'test',
-      lastName: 'user',
-      email: 'test2@email.com',
-      password: 'password',
-    };
     return request(app.getHttpServer())
-      .post('/users')
-      .send(testUserTwo)
-      .expect(201)
+      .delete('/users/2')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200)
       .then(() => {
-        return request(app.getHttpServer())
-          .delete('/users/2')
-          .set('Authorization', `Bearer ${accessToken}`)
-          .expect(200)
-          .then(() => {
-            return request(app.getHttpServer())
-              .get('/users/2')
-              .set('Authorization', `Bearer ${accessToken}`)
-              .expect(404);
-          });
+        return request(app.getHttpServer()).get('/users/2').set('Authorization', `Bearer ${accessToken}`).expect(404);
       });
   });
 });
