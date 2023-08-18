@@ -7,6 +7,8 @@ import {InjectRepository} from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import {JwtPayload, JwtResponse} from '../auth/auth-types';
 import {JwtService} from '@nestjs/jwt';
+import {CreateFriendshipDto} from './dto/create-friendship.dto';
+import * as _ from 'lodash';
 
 @Injectable()
 export class UserService {
@@ -17,7 +19,7 @@ export class UserService {
   ) {}
 
   public async getUser(userId: number): Promise<User | null> {
-    const foundUser = await this.userRepository.findOne({where: {id: userId}});
+    const foundUser = await this.getUserAndFriendsByUserId(userId);
     if (foundUser) return foundUser;
     throw new NotFoundException();
   }
@@ -61,24 +63,66 @@ export class UserService {
   }
 
   public async updateUser(userId: number, user: UpdateUserDto): Promise<User> {
-    const updateUser = await this.userRepository.findOne({
-      where: {id: userId},
-    });
+    const updateUser = await this.userRepository.findOne({where: {id: userId}});
     delete updateUser?.password;
     if (updateUser) {
       await this.userRepository.update(userId, user);
+      const updateUserFriends = await this.findFriendsByUserId(updateUser.id);
+      updateUser.friends = updateUserFriends;
       return {...updateUser, ...user};
     }
     throw new NotFoundException();
   }
 
   public async deleteUser(userId: number): Promise<User> {
-    const deleteUser = await this.userRepository.findOne({
-      where: {id: userId},
-    });
+    const deleteUser = await this.userRepository.findOne({where: {id: userId}});
     if (deleteUser) {
       return this.userRepository.remove(deleteUser);
     }
     throw new NotFoundException();
+  }
+
+  public async createFriendship(friendship: CreateFriendshipDto): Promise<User | null> {
+    const updateUser = await this.getUserAndFriendsByUserId(friendship.userId);
+    if (updateUser) {
+      if (_.some(updateUser.friends, (friend) => friend.id === friendship.friendId)) {
+        return updateUser;
+      } else {
+        await this.userRepository.query(
+          `
+            INSERT INTO "user_friends_user" ("userId", "friendId")
+            VALUES ($1, $2)
+          `,
+          [friendship.userId, friendship.friendId],
+        );
+        return this.getUserAndFriendsByUserId(friendship.userId);
+      }
+    }
+    throw new NotFoundException();
+  }
+
+  private findFriendsByUserId(id: number): Promise<User[]> {
+    return this.userRepository.query(
+      `
+        SELECT id,username,"firstName","lastName",email
+        FROM "user" AS U
+        WHERE U.id <> $1
+          AND EXISTS(
+            SELECT 1
+            FROM "user_friends_user" AS F
+            WHERE (F."userId" = $1 AND F."friendId" = U.id)
+            OR (F."friendId" = $1 AND F."userId" = U.id)
+          )
+      `,
+      [id],
+    );
+  }
+
+  private async getUserAndFriendsByUserId(userId: number): Promise<User | null> {
+    const user = await this.userRepository.findOne({where: {id: userId}});
+    if (user) {
+      user.friends = await this.findFriendsByUserId(userId);
+    }
+    return user;
   }
 }

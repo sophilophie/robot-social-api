@@ -1,5 +1,5 @@
 import {Exclude} from 'class-transformer';
-import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn} from 'typeorm';
 
 @Entity()
 export class User {
@@ -21,4 +21,8 @@ export class User {
   @Column()
   @Exclude()
   public password?: string;
+
+  @ManyToMany(() => User)
+  @JoinTable({joinColumn: {name: 'friendId'}})
+  public friends: User[];
 }

@@ -17,6 +17,7 @@ import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
 import {User} from './entity/user.entity';
 import {UserService} from './user.service';
+import {CreateFriendshipDto} from './dto/create-friendship.dto';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('users')
@@ -37,6 +38,11 @@ export class UserController {
   @Post()
   public postUser(@Body() createUserDto: CreateUserDto): Promise<JwtResponse | InternalServerErrorException> {
     return this.userService.createUser(createUserDto);
+  }
+
+  @Post('friendship')
+  public postUserFriendship(@Body() createFriendshipDto: CreateFriendshipDto): Promise<User | null> {
+    return this.userService.createFriendship(createFriendshipDto);
   }
 
   @Put(':userId')
