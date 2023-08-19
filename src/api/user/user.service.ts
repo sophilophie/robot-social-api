@@ -19,7 +19,7 @@ export class UserService {
   ) {}
 
   public getUser(userId: number): Promise<UserModel | null> {
-    return this.userRepository.findOne({where: {id: userId}});
+    return this.userRepository.findOne({where: {id: userId}, relations: {posts: true}});
   }
 
   public async getUserWithFriends(userId: number): Promise<UserModel | null> {

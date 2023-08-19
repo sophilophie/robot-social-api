@@ -43,6 +43,7 @@ describe('post (e2e)', () => {
       firstName: 'test',
       lastName: 'user',
       email: 'test@email.com',
+      posts: [],
     };
     return request(app.getHttpServer())
       .post('/users')

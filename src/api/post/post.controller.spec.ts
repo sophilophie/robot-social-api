@@ -1,6 +1,8 @@
 import {Test, TestingModule} from '@nestjs/testing';
 import {PostController} from './post.controller';
 import {PostService} from './post.service';
+import {JwtService} from '@nestjs/jwt';
+import {UserService} from '../user/user.service';
 
 describe('PostController', () => {
   let controller: PostController;
@@ -22,6 +24,8 @@ describe('PostController', () => {
       controllers: [PostController],
     })
       .useMocker((token) => {
+        if (token === UserService) return {};
+        if (token === JwtService) return {};
         if (token === PostService) return mockPostService;
       })
       .compile();

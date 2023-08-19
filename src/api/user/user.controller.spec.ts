@@ -3,6 +3,7 @@ import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
 import {UserController} from './user.controller';
 import {UserService} from './user.service';
+import {JwtService} from '@nestjs/jwt';
 
 describe('UserController', () => {
   let controller: UserController;
@@ -32,6 +33,7 @@ describe('UserController', () => {
       controllers: [UserController],
     })
       .useMocker((token) => {
+        if (token === JwtService) return {};
         if (token === UserService) return mockUserService;
       })
       .compile();
