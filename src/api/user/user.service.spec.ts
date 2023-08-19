@@ -37,7 +37,7 @@ describe('UserService', () => {
       providers: [UserService],
     })
       .useMocker((token) => {
-        if (token === 'UserRepository') return mockUserRepository;
+        if (token === 'UserModelRepository') return mockUserRepository;
         if (token === JwtService) return mockJwtService;
       })
       .compile();

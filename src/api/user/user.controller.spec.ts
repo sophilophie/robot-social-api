@@ -23,7 +23,7 @@ describe('UserController', () => {
   beforeEach(async () => {
     mockUserService = {
       getUsers: jest.fn(),
-      getUser: jest.fn(),
+      getUserWithFriends: jest.fn(),
       createUser: jest.fn(),
       updateUser: jest.fn(),
       deleteUser: jest.fn(),
@@ -47,7 +47,7 @@ describe('UserController', () => {
     controller.getUsers();
     expect(mockUserService.getUsers).toHaveBeenCalled();
     controller.getUser(0);
-    expect(mockUserService.getUser).toHaveBeenCalledWith(0);
+    expect(mockUserService.getUserWithFriends).toHaveBeenCalledWith(0);
     controller.postUser(testCreateUserDto);
     expect(mockUserService.createUser).toHaveBeenCalledWith(testCreateUserDto);
     controller.putUser(0, testPutUserDto);

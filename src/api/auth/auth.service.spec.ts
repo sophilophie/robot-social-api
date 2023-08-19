@@ -31,6 +31,8 @@ describe('AuthService', () => {
     mockUserService = {
       getUserByUsername: jest.fn().mockResolvedValue(mockUser),
       getUser: jest.fn().mockResolvedValue(mockUser),
+      getUserAndFriendsbyUsername: jest.fn().mockResolvedValue(mockUser),
+      getUserWithFriends: jest.fn().mockResolvedValue(mockUser),
     };
     mockJwtService = {
       sign: jest.fn().mockReturnValue('JWT_TEST_HASH'),
@@ -93,7 +95,7 @@ describe('AuthService', () => {
       access_token: 'JWT_TEST_HASH_PRE_REFRESH',
     });
     expect(mockJwtService.decode).toHaveBeenCalledWith('JWT_TEST_HASH_PRE_REFRESH');
-    expect(mockUserService.getUser).toHaveBeenCalledWith(0);
+    expect(mockUserService.getUserWithFriends).toHaveBeenCalledWith(0);
     expect(result).toEqual(expectedResult);
   });
 

@@ -130,10 +130,6 @@ export class UserService {
   }
 
   public async getUserAndFriendsbyUsername(username: string): Promise<UserModel | null> {
-    const user = await this.getUserByUsername(username);
-    if (user) {
-      user.friends = await this.findFriendsByUserId(user.id);
-    }
-    return user;
+    return this.userRepository.findOne({where: {username}, relations: {friends: true}});
   }
 }
