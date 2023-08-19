@@ -1,7 +1,8 @@
 import {Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {TypeOrmOptionsFactory, TypeOrmModuleOptions} from '@nestjs/typeorm';
-import {User} from '../../api/user/entity/user.entity';
+import {PostModel} from '../../api/post/entity/post.entity';
+import {UserModel} from '../../api/user/entity/user.entity';
 
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
@@ -10,10 +11,17 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   public createTypeOrmOptions(): TypeOrmModuleOptions {
     if (process.env.NODE_ENV === 'test') {
       return {
-        type: 'sqlite',
-        database: ':memory:',
-        entities: [User],
-        synchronize: true,
+        type: 'postgres',
+        host: this.config.get<string>('DATABASE_HOST'),
+        port: this.config.get<number>('DATABASE_PORT'),
+        database: this.config.get<string>('DATABASE_NAME'),
+        username: this.config.get<string>('DATABASE_USER'),
+        password: this.config.get<string>('DATABASE_PASSWORD'),
+        entities: [UserModel, PostModel],
+        migrations: ['dist/migrations/*.{ts,js}'],
+        migrationsTableName: 'typeorm_migrations',
+        logger: 'file',
+        synchronize: true, // never use TRUE in production!
       };
     }
     return {

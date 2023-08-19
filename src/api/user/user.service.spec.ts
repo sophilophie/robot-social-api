@@ -3,14 +3,14 @@ import {Test, TestingModule} from '@nestjs/testing';
 import {Repository} from 'typeorm';
 import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
-import {User} from './entity/user.entity';
+import {UserModel} from './entity/user.entity';
 import {UserService} from './user.service';
 
 describe('UserService', () => {
   let service: UserService;
-  let mockUserRepository: Partial<Repository<User>>, mockJwtService: Partial<JwtService>;
+  let mockUserRepository: Partial<Repository<UserModel>>, mockJwtService: Partial<JwtService>;
 
-  const mockUser: User = {
+  const mockUser: UserModel = {
     id: 0,
     firstName: 'Test',
     lastName: 'User',
@@ -18,6 +18,7 @@ describe('UserService', () => {
     password: 'someHash',
     email: 'test@user.com',
     friends: [],
+    posts: [],
   };
 
   beforeEach(async () => {
@@ -36,7 +37,7 @@ describe('UserService', () => {
       providers: [UserService],
     })
       .useMocker((token) => {
-        if (token === 'UserRepository') return mockUserRepository;
+        if (token === 'UserModelRepository') return mockUserRepository;
         if (token === JwtService) return mockJwtService;
       })
       .compile();
@@ -48,8 +49,8 @@ describe('UserService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should find one user by id', async () => {
-    const result: User | null = await service.getUser(0);
+  it('should find one user with friends by id', async () => {
+    const result: UserModel | null = await service.getUserWithFriends(0);
     expect(mockUserRepository.findOne).toHaveBeenCalledWith({where: {id: 0}});
     expect(mockUserRepository.query).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
@@ -58,12 +59,14 @@ describe('UserService', () => {
   it('should throw 404 if user is not found in read, update, or destroy operations', async () => {
     mockUserRepository.findOne = jest.fn();
     try {
-      await service.getUser(0);
+      await service.getUserWithFriends(0);
     } catch (error) {
       expect(error.status).toBe(404);
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       await service.getUserByUsername('notFound');
     } catch (error) {
       expect(error.status).toBe(404);
@@ -83,7 +86,9 @@ describe('UserService', () => {
   });
 
   it('should find one user by username', async () => {
-    const result: User | null = await service.getUserByUsername('testUser0');
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const result: UserModel | null = await service.getUserByUsername('testUser0');
     expect(mockUserRepository.findOne).toHaveBeenCalledWith({
       where: {username: 'testUser0'},
     });
@@ -91,7 +96,7 @@ describe('UserService', () => {
   });
 
   it('should get a list of users', async () => {
-    const result: User[] = await service.getUsers();
+    const result: UserModel[] = await service.getUsers();
     expect(mockUserRepository.find).toHaveBeenCalled();
     expect(result).toEqual([mockUser]);
   });
@@ -127,7 +132,7 @@ describe('UserService', () => {
 
   it('should update an existing user, returning the entire new user object', async () => {
     const updateUser: UpdateUserDto = {username: 'userName0'};
-    const result: User = await service.updateUser(0, updateUser);
+    const result: UserModel = await service.updateUser(0, updateUser);
     expect(mockUserRepository.findOne).toHaveBeenCalledWith({where: {id: 0}});
     expect(mockUserRepository.query).toHaveBeenCalled();
     expect(mockUserRepository.update).toHaveBeenCalledWith(0, updateUser);

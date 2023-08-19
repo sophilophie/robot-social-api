@@ -1,7 +1,7 @@
 import {ConflictException, Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
-import {User} from './entity/user.entity';
+import {UserModel} from './entity/user.entity';
 import {Repository} from 'typeorm';
 import {InjectRepository} from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -13,35 +13,39 @@ import * as _ from 'lodash';
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(UserModel)
+    private readonly userRepository: Repository<UserModel>,
     private readonly jwtService: JwtService,
   ) {}
 
-  public async getUser(userId: number): Promise<User | null> {
+  public getUser(userId: number): Promise<UserModel | null> {
+    return this.userRepository.findOne({where: {id: userId}});
+  }
+
+  public async getUserWithFriends(userId: number): Promise<UserModel | null> {
     const foundUser = await this.getUserAndFriendsByUserId(userId);
     if (foundUser) return foundUser;
     throw new NotFoundException();
   }
 
-  private getUserByUsername(username: string): Promise<User | null> {
+  private getUserByUsername(username: string): Promise<UserModel | null> {
     return this.userRepository.findOne({where: {username}});
   }
 
-  public getUserByEmail(email: string): Promise<User | null> {
+  public getUserByEmail(email: string): Promise<UserModel | null> {
     return this.userRepository.findOne({where: {email}});
   }
 
-  public getUsers(): Promise<User[]> {
-    return this.userRepository.find();
+  public getUsers(): Promise<UserModel[]> {
+    return this.userRepository.find({select: ['firstName', 'lastName', 'username', 'email', 'id']});
   }
 
-  public async createUser(user: CreateUserDto): Promise<JwtResponse | InternalServerErrorException> {
+  public async createUser(user: CreateUserDto): Promise<JwtResponse> {
     const {username, firstName, lastName, email, password}: CreateUserDto = user;
     // It seems more likely that a conflicting username exists than a conflicting email, so we cascade.
     let createdUser = (await this.getUserByUsername(username)) ?? (await this.getUserByEmail(email));
     if (createdUser) throw new ConflictException();
-    createdUser = new User();
+    createdUser = new UserModel();
     createdUser.username = username;
     createdUser.firstName = firstName;
     createdUser.lastName = lastName;
@@ -49,6 +53,7 @@ export class UserService {
     createdUser.password = bcrypt.hashSync(password, bcrypt.genSaltSync());
 
     const newUser = await this.userRepository.save(createdUser);
+    delete newUser?.password;
     if (newUser) {
       const payload: JwtPayload = {
         username: newUser.username,
@@ -59,22 +64,22 @@ export class UserService {
         user: newUser,
       };
     }
-    return new InternalServerErrorException();
+    throw new InternalServerErrorException();
   }
 
-  public async updateUser(userId: number, user: UpdateUserDto): Promise<User> {
+  public async updateUser(userId: number, user: UpdateUserDto): Promise<UserModel> {
     const updateUser = await this.userRepository.findOne({where: {id: userId}});
-    delete updateUser?.password;
     if (updateUser) {
       await this.userRepository.update(userId, user);
       const updateUserFriends = await this.findFriendsByUserId(updateUser.id);
       updateUser.friends = updateUserFriends;
+      delete updateUser?.password;
       return {...updateUser, ...user};
     }
     throw new NotFoundException();
   }
 
-  public async deleteUser(userId: number): Promise<User> {
+  public async deleteUser(userId: number): Promise<UserModel> {
     const deleteUser = await this.userRepository.findOne({where: {id: userId}});
     if (deleteUser) {
       return this.userRepository.remove(deleteUser);
@@ -82,7 +87,7 @@ export class UserService {
     throw new NotFoundException();
   }
 
-  public async createFriendship(friendship: CreateFriendshipDto): Promise<User | null> {
+  public async createFriendship(friendship: CreateFriendshipDto): Promise<UserModel | null> {
     const updateUser = await this.getUserAndFriendsByUserId(friendship.userId);
     if (updateUser) {
       if (_.some(updateUser.friends, (friend) => friend.id === friendship.friendId)) {
@@ -101,7 +106,7 @@ export class UserService {
     throw new NotFoundException();
   }
 
-  private findFriendsByUserId(id: number): Promise<User[]> {
+  private findFriendsByUserId(id: number): Promise<UserModel[]> {
     return this.userRepository.query(
       `
         SELECT id,username,"firstName","lastName",email
@@ -118,19 +123,16 @@ export class UserService {
     );
   }
 
-  private async getUserAndFriendsByUserId(userId: number): Promise<User | null> {
+  private async getUserAndFriendsByUserId(userId: number): Promise<UserModel | null> {
     const user = await this.userRepository.findOne({where: {id: userId}});
     if (user) {
       user.friends = await this.findFriendsByUserId(userId);
+      delete user?.password;
     }
     return user;
   }
 
-  public async getUserAndFriendsbyUsername(username: string): Promise<User | null> {
-    const user = await this.getUserByUsername(username);
-    if (user) {
-      user.friends = await this.findFriendsByUserId(user.id);
-    }
-    return user;
+  public async getUserAndFriendsbyUsername(username: string): Promise<UserModel | null> {
+    return this.userRepository.findOne({where: {username}, relations: {friends: true}});
   }
 }

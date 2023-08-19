@@ -1,8 +1,8 @@
-import {Exclude} from 'class-transformer';
-import {Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
+import {PostModel} from '../../post/entity/post.entity';
 
-@Entity()
-export class User {
+@Entity('user')
+export class UserModel {
   @PrimaryGeneratedColumn()
   public id: number;
 
@@ -19,10 +19,12 @@ export class User {
   public email: string;
 
   @Column()
-  @Exclude()
   public password?: string;
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => UserModel)
   @JoinTable({joinColumn: {name: 'friendId'}})
-  public friends: User[];
+  public friends: UserModel[];
+
+  @OneToMany(() => PostModel, (post: PostModel) => post.user)
+  public posts: PostModel[];
 }

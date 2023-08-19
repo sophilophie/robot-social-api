@@ -2,8 +2,11 @@ import * as request from 'supertest';
 import {INestApplication} from '@nestjs/common';
 import {Test} from '@nestjs/testing';
 import {AppModule} from '../../src/app.module';
+import {Repository} from 'typeorm';
+import {UserModel} from '../../src/api/user/entity/user.entity';
 
 let accessToken: string;
+let userRepository: Repository<UserModel>;
 
 describe('user (e2e)', () => {
   let app: INestApplication;
@@ -31,10 +34,12 @@ describe('user (e2e)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    userRepository = moduleRef.get('UserModelRepository');
     await app.init();
   });
 
   afterAll(async () => {
+    await userRepository.query('TRUNCATE TABLE "user" RESTART IDENTITY CASCADE');
     await app.close();
   });
 
