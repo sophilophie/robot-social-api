@@ -37,7 +37,7 @@ export class UserService {
   }
 
   public getUsers(): Promise<UserModel[]> {
-    return this.userRepository.find();
+    return this.userRepository.find({select: ['firstName', 'lastName', 'username', 'email', 'id']});
   }
 
   public async createUser(user: CreateUserDto): Promise<JwtResponse> {
@@ -53,6 +53,7 @@ export class UserService {
     createdUser.password = bcrypt.hashSync(password, bcrypt.genSaltSync());
 
     const newUser = await this.userRepository.save(createdUser);
+    delete newUser?.password;
     if (newUser) {
       const payload: JwtPayload = {
         username: newUser.username,
@@ -72,6 +73,7 @@ export class UserService {
       await this.userRepository.update(userId, user);
       const updateUserFriends = await this.findFriendsByUserId(updateUser.id);
       updateUser.friends = updateUserFriends;
+      delete updateUser?.password;
       return {...updateUser, ...user};
     }
     throw new NotFoundException();
@@ -125,6 +127,7 @@ export class UserService {
     const user = await this.userRepository.findOne({where: {id: userId}});
     if (user) {
       user.friends = await this.findFriendsByUserId(userId);
+      delete user?.password;
     }
     return user;
   }

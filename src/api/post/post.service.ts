@@ -26,7 +26,9 @@ export class PostService {
       newPost.content = createPostDto.content;
       newPost.timePosted = new Date();
       newPost.user = postUser;
-      return this.postRepository.save(newPost);
+      const createdPost = await this.postRepository.save(newPost);
+      delete createdPost?.user?.password;
+      return createdPost;
     }
     throw new NotFoundException();
   }

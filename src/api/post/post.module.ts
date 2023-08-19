@@ -4,7 +4,7 @@ import {PostService} from './post.service';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import {PostModel} from './entity/post.entity';
 import {UserService} from '../user/user.service';
-import {SharedModule} from 'src/shared/shared.module';
+import {SharedModule} from '../../shared/shared.module';
 import {UserModel} from '../user/entity/user.entity';
 
 @Module({

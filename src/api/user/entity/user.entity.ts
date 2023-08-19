@@ -18,7 +18,7 @@ export class UserModel {
   @Column({unique: true})
   public email: string;
 
-  @Column({select: false})
+  @Column()
   public password?: string;
 
   @ManyToMany(() => UserModel)
