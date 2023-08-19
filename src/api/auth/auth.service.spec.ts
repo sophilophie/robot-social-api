@@ -1,6 +1,6 @@
 import {JwtService} from '@nestjs/jwt';
 import {Test, TestingModule} from '@nestjs/testing';
-import {User} from '../user/entity/user.entity';
+import {UserModel} from '../user/entity/user.entity';
 import {UserService} from '../user/user.service';
 import {AuthService} from './auth.service';
 import {LoginDto} from './dto/login.dto';
@@ -11,7 +11,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let mockUserService: any, mockJwtService: any;
 
-  const mockUser: User = {
+  const mockUser: UserModel = {
     id: 0,
     firstName: 'Test',
     lastName: 'User',
@@ -19,6 +19,7 @@ describe('AuthService', () => {
     password: 'someHash',
     email: 'test@user.com',
     friends: [],
+    posts: [],
   };
 
   const mockLogin: LoginDto = {

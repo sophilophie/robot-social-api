@@ -1,6 +1,6 @@
 import {Injectable, UnauthorizedException} from '@nestjs/common';
 import {JwtService} from '@nestjs/jwt';
-import {User} from '../user/entity/user.entity';
+import {UserModel} from '../user/entity/user.entity';
 import {UserService} from '../user/user.service';
 import {JwtPayload, JwtResponse} from './auth-types';
 import {LoginDto} from './dto/login.dto';
@@ -12,7 +12,7 @@ export class AuthService {
   constructor(private readonly userService: UserService, private readonly jwtService: JwtService) {}
 
   public async login(loginDto: LoginDto): Promise<JwtResponse> {
-    const loginUser = await this.userService.getUserAndFriendsbyUsername(loginDto.username);
+    const loginUser: UserModel | null = await this.userService.getUserAndFriendsbyUsername(loginDto.username);
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (loginUser && bcrypt.compareSync(loginDto.password, loginUser.password!)) {
@@ -31,7 +31,7 @@ export class AuthService {
 
   public async refresh(refreshDto: RefreshUserDto): Promise<JwtResponse> {
     const decodedJwt = this.jwtService.decode(refreshDto.access_token);
-    const refreshUser: User | null = await this.userService.getUser((decodedJwt as JwtPayload).id);
+    const refreshUser: UserModel | null = await this.userService.getUserWithFriends((decodedJwt as JwtPayload).id);
     if (refreshUser) {
       const payload: JwtPayload = {
         username: refreshUser.username,

@@ -1,4 +1,4 @@
-import {User} from '../user/entity/user.entity';
+import {UserModel} from '../user/entity/user.entity';
 
 export interface JwtPayload {
   username: string;
@@ -7,5 +7,5 @@ export interface JwtPayload {
 
 export interface JwtResponse {
   access_token: string;
-  user: User;
+  user: UserModel;
 }

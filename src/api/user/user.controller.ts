@@ -15,7 +15,7 @@ import {SkipJwtAuth} from '../../common/decorators/skip-jwt.decorator';
 import {JwtResponse} from '../auth/auth-types';
 import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
-import {User} from './entity/user.entity';
+import {UserModel} from './entity/user.entity';
 import {UserService} from './user.service';
 import {CreateFriendshipDto} from './dto/create-friendship.dto';
 
@@ -25,13 +25,13 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  public getUsers(): Promise<User[]> {
+  public getUsers(): Promise<UserModel[]> {
     return this.userService.getUsers();
   }
 
   @Get(':userId')
-  public getUser(@Param('userId', ParseIntPipe) userId: number): Promise<User | null> {
-    return this.userService.getUser(userId);
+  public getUser(@Param('userId', ParseIntPipe) userId: number): Promise<UserModel | null> {
+    return this.userService.getUserWithFriends(userId);
   }
 
   @SkipJwtAuth()
@@ -41,17 +41,20 @@ export class UserController {
   }
 
   @Post('friendship')
-  public postUserFriendship(@Body() createFriendshipDto: CreateFriendshipDto): Promise<User | null> {
+  public postUserFriendship(@Body() createFriendshipDto: CreateFriendshipDto): Promise<UserModel | null> {
     return this.userService.createFriendship(createFriendshipDto);
   }
 
   @Put(':userId')
-  public putUser(@Param('userId', ParseIntPipe) userId: number, @Body() updateUserDto: UpdateUserDto): Promise<User> {
+  public putUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<UserModel> {
     return this.userService.updateUser(userId, updateUserDto);
   }
 
   @Delete(':userId')
-  public deleteUser(@Param('userId', ParseIntPipe) userId: number): Promise<User> {
+  public deleteUser(@Param('userId', ParseIntPipe) userId: number): Promise<UserModel> {
     return this.userService.deleteUser(userId);
   }
 }
