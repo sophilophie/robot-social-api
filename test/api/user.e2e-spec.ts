@@ -143,11 +143,11 @@ describe('user (e2e)', () => {
 
   it('DELETE /users/:id', () => {
     return request(app.getHttpServer())
-      .delete('/users/2')
+      .delete('/users/1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200)
       .then(() => {
-        return request(app.getHttpServer()).get('/users/2').set('Authorization', `Bearer ${accessToken}`).expect(404);
+        return request(app.getHttpServer()).get('/users/1').set('Authorization', `Bearer ${accessToken}`).expect(404);
       });
   });
 });

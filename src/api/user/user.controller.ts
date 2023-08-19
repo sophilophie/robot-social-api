@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {SkipJwtAuth} from '../../common/decorators/skip-jwt.decorator';
@@ -18,6 +19,7 @@ import {UpdateUserDto} from './dto/update-user.dto';
 import {UserModel} from './entity/user.entity';
 import {UserService} from './user.service';
 import {CreateFriendshipDto} from './dto/create-friendship.dto';
+import {SameUserAuthGuard} from './same-user-auth.guard';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('users')
@@ -45,6 +47,7 @@ export class UserController {
     return this.userService.createFriendship(createFriendshipDto);
   }
 
+  @UseGuards(SameUserAuthGuard)
   @Put(':userId')
   public putUser(
     @Param('userId', ParseIntPipe) userId: number,
@@ -53,6 +56,7 @@ export class UserController {
     return this.userService.updateUser(userId, updateUserDto);
   }
 
+  @UseGuards(SameUserAuthGuard)
   @Delete(':userId')
   public deleteUser(@Param('userId', ParseIntPipe) userId: number): Promise<UserModel> {
     return this.userService.deleteUser(userId);
