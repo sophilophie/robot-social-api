@@ -29,6 +29,8 @@ describe('user (e2e)', () => {
         id: 2,
       },
     ],
+    requestedFriends: [],
+    requestsReceived: [],
   };
 
   beforeAll(async () => {
@@ -67,7 +69,11 @@ describe('user (e2e)', () => {
       });
   });
 
-  it('POST /users/friendship', () => {
+  it('POST /users/friend-request', async () => {
+    const friendRequest = {
+      requestorId: 1,
+      requesteeId: 2,
+    };
     const newUserTwo = {
       username: 'TestUser2',
       firstName: 'test2',
@@ -75,27 +81,60 @@ describe('user (e2e)', () => {
       email: 'test2@email.com',
       password: 'TestPassword01',
     };
-    const newFriendship = {
-      userId: 1,
-      friendId: 2,
-    };
-    return request(app.getHttpServer())
+
+    await request(app.getHttpServer())
       .post('/users')
       .send(newUserTwo)
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/users/friend-request')
+      .send(friendRequest)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(201);
+    await request(app.getHttpServer())
+      .get('/users/1')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.requestedFriends.length).toBe(1);
+      });
+  });
+
+  it('POST /users/friendship', async () => {
+    const newFriendship = {
+      requestorId: 1,
+      requesteeId: 2,
+    };
+    const expectedResponse = {
+      id: 2,
+      username: 'TestUser2',
+      email: 'test2@email.com',
+      firstName: 'test2',
+      lastName: 'user2',
+      friends: [
+        {
+          email: 'test@email.com',
+          firstName: 'test',
+          id: 1,
+          lastName: 'user',
+          username: 'TestUser1',
+        },
+      ],
+      posts: [],
+      requestedFriends: [],
+      requestsReceived: [],
+    };
+    await request(app.getHttpServer())
+      .post('/users/friendship')
+      .send(newFriendship)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(201)
-      .then(() => {
-        return request(app.getHttpServer())
-          .post('/users/friendship')
-          .send(newFriendship)
-          .set('Content-Type', 'application/json')
-          .set('Accept', 'application/json')
-          .set('Authorization', `Bearer ${accessToken}`)
-          .expect(201)
-          .expect((res) => {
-            expect(res.body).toEqual(expectedUserAndFriends);
-          });
+      .expect((res) => {
+        expect(res.body).toEqual(expectedResponse);
       });
   });
 

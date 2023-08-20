@@ -36,7 +36,6 @@ describe('PostService', () => {
 
     mockUserService = {
       getUser: jest.fn().mockResolvedValue(mockUser),
-      getUserWithFriends: jest.fn().mockResolvedValue(mockUser),
     };
     const module: TestingModule = await Test.createTestingModule({
       providers: [PostService],
@@ -83,7 +82,7 @@ describe('PostService', () => {
 
   it('should get news feed', async () => {
     await service.getNewsFeedByUserId(1);
-    expect(mockUserService.getUserWithFriends).toHaveBeenCalled();
+    expect(mockUserService.getUser).toHaveBeenCalled();
     expect(mockPostRepository.find).toHaveBeenCalled();
   });
 });

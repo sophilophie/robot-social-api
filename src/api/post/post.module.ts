@@ -6,9 +6,10 @@ import {PostModel} from './entity/post.entity';
 import {UserService} from '../user/user.service';
 import {SharedModule} from '../../shared/shared.module';
 import {UserModel} from '../user/entity/user.entity';
+import {FriendRequestModel} from '../user/entity/friend-request.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PostModel, UserModel]), SharedModule],
+  imports: [TypeOrmModule.forFeature([PostModel, UserModel, FriendRequestModel]), SharedModule],
   controllers: [PostController],
   providers: [PostService, UserService],
 })

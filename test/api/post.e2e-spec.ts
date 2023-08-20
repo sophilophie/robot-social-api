@@ -44,6 +44,9 @@ describe('post (e2e)', () => {
       lastName: 'user',
       email: 'test@email.com',
       posts: [],
+      friends: [],
+      requestedFriends: [],
+      requestsReceived: [],
     };
     return request(app.getHttpServer())
       .post('/users')
@@ -95,7 +98,7 @@ describe('post (e2e)', () => {
       });
   });
 
-  it('GET /posts/feed/:userId', () => {
+  it('GET /posts/feed/:userId', async () => {
     const newUserTwo = {
       username: 'TestUser2',
       firstName: 'test',
@@ -107,37 +110,36 @@ describe('post (e2e)', () => {
       content: 'Test Post Three',
       userId: 2,
     };
-    return request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/users')
       .send(newUserTwo)
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
-      .expect(201)
-      .then(() => {
-        return request(app.getHttpServer())
-          .post('/users/friendship')
-          .send({userId: 1, friendId: 2})
-          .set('Authorization', `Bearer ${accessToken}`)
-          .expect(201)
-          .then(() => {
-            return request(app.getHttpServer())
-              .post('/posts')
-              .send(newPostThree)
-              .set('Content-Type', 'application/json')
-              .set('Accept', 'application/json')
-              .set('Authorization', `Bearer ${accessToken}`)
-              .expect(201)
-              .then(() => {
-                return request(app.getHttpServer())
-                  .get('/posts/feed/1')
-                  .set('Authorization', `Bearer ${accessToken}`)
-                  .expect(200)
-                  .expect((res) => {
-                    expect(res.body[0].user.id).toBe(1);
-                    expect(res.body[2].user.id).toBe(2);
-                  });
-              });
-          });
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/users/friend-request')
+      .send({requestorId: 1, requesteeId: 2})
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/users/friendship')
+      .send({requestorId: 1, requesteeId: 2})
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/posts')
+      .send(newPostThree)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(201);
+    await request(app.getHttpServer())
+      .get('/posts/feed/1')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body[0].user.id).toBe(1);
+        expect(res.body[2].user.id).toBe(2);
       });
   });
 
