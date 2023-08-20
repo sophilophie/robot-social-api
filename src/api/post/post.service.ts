@@ -52,7 +52,7 @@ export class PostService {
 
   public async getNewsFeedByUserId(userId: number): Promise<PostModel[]> {
     let newsFeed: PostModel[] = [];
-    const requestingUser = await this.userService.getUserWithFriends(userId);
+    const requestingUser = await this.userService.getUser(userId);
     _.forEach(requestingUser?.friends, async (friend) => {
       const friendPosts = await this.postRepository.find({where: {user: {id: friend.id}}, relations: {user: true}});
       newsFeed = newsFeed.concat(friendPosts);

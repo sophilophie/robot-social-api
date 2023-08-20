@@ -1,11 +1,11 @@
 import {JwtService} from '@nestjs/jwt';
 import {Test, TestingModule} from '@nestjs/testing';
-import {UserModel} from '../user/entity/user.entity';
 import {UserService} from '../user/user.service';
 import {AuthService} from './auth.service';
 import {LoginDto} from './dto/login.dto';
 import * as bcrypt from 'bcryptjs';
 import {JwtResponse} from './auth-types';
+import {UserModel} from '../user/entity/user.entity';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -20,6 +20,8 @@ describe('AuthService', () => {
     email: 'test@user.com',
     friends: [],
     posts: [],
+    requestedFriends: [],
+    requestsReceived: [],
   };
 
   const mockLogin: LoginDto = {
@@ -32,7 +34,6 @@ describe('AuthService', () => {
       getUserByUsername: jest.fn().mockResolvedValue(mockUser),
       getUser: jest.fn().mockResolvedValue(mockUser),
       getUserAndFriendsbyUsername: jest.fn().mockResolvedValue(mockUser),
-      getUserWithFriends: jest.fn().mockResolvedValue(mockUser),
     };
     mockJwtService = {
       sign: jest.fn().mockReturnValue('JWT_TEST_HASH'),
@@ -95,7 +96,7 @@ describe('AuthService', () => {
       access_token: 'JWT_TEST_HASH_PRE_REFRESH',
     });
     expect(mockJwtService.decode).toHaveBeenCalledWith('JWT_TEST_HASH_PRE_REFRESH');
-    expect(mockUserService.getUserWithFriends).toHaveBeenCalledWith(0);
+    expect(mockUserService.getUser).toHaveBeenCalledWith(0);
     expect(result).toEqual(expectedResult);
   });
 

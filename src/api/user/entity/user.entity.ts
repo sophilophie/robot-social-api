@@ -1,5 +1,6 @@
 import {Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
 import {PostModel} from '../../post/entity/post.entity';
+import {FriendRequestModel} from './friend-request.entity';
 
 @Entity('user')
 export class UserModel {
@@ -27,4 +28,10 @@ export class UserModel {
 
   @OneToMany(() => PostModel, (post: PostModel) => post.user)
   public posts: PostModel[];
+
+  @OneToMany(() => FriendRequestModel, (friendRequest: FriendRequestModel) => friendRequest.requestor)
+  public requestedFriends: FriendRequestModel[];
+
+  @OneToMany(() => FriendRequestModel, (friendRequest: FriendRequestModel) => friendRequest.requestee)
+  public requestsReceived: FriendRequestModel[];
 }

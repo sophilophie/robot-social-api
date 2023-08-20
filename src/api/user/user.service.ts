@@ -9,27 +9,60 @@ import {JwtPayload, JwtResponse} from '../auth/auth-types';
 import {JwtService} from '@nestjs/jwt';
 import {CreateFriendshipDto} from './dto/create-friendship.dto';
 import * as _ from 'lodash';
+import {FriendRequestModel} from './entity/friend-request.entity';
+import {CreateFriendRequestDto} from './dto/create-friend-request.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserModel)
     private readonly userRepository: Repository<UserModel>,
+    @InjectRepository(FriendRequestModel)
+    private readonly friendRequestRepository: Repository<FriendRequestModel>,
     private readonly jwtService: JwtService,
   ) {}
 
-  public getUser(userId: number): Promise<UserModel | null> {
-    return this.userRepository.findOne({where: {id: userId}, relations: {posts: true}});
-  }
-
-  public async getUserWithFriends(userId: number): Promise<UserModel | null> {
-    const foundUser = await this.getUserAndFriendsByUserId(userId);
-    if (foundUser) return foundUser;
+  public async getUser(userId: number): Promise<UserModel | null> {
+    const user = await this.userRepository.findOne({
+      select: {
+        firstName: true,
+        lastName: true,
+        username: true,
+        id: true,
+        email: true,
+      },
+      where: {id: userId},
+      relations: {posts: true, requestedFriends: {requestee: true}, requestsReceived: {requestor: true}},
+    });
+    if (user) {
+      return await this.clearPasswordsAndAppendFriends(user);
+    }
     throw new NotFoundException();
   }
 
-  private getUserByUsername(username: string): Promise<UserModel | null> {
-    return this.userRepository.findOne({where: {username}});
+  public async getUserByUsername(username: string): Promise<UserModel | null> {
+    const user = await this.userRepository.findOne({
+      where: {username},
+      relations: {posts: true, requestedFriends: {requestee: true}, requestsReceived: {requestor: true}},
+    });
+    if (user) {
+      return await this.clearPasswordsAndAppendFriends(user);
+    }
+    return null;
+  }
+
+  private async clearPasswordsAndAppendFriends(user: UserModel): Promise<UserModel> {
+    _.forEach(user.requestsReceived, (friendRequest) => {
+      delete friendRequest?.requestor?.password;
+    });
+    _.forEach(user.requestedFriends, (friendRequest) => {
+      delete friendRequest?.requestee?.password;
+    });
+    _.forEach(user.friends, (friend) => {
+      delete friend?.password;
+    });
+    user.friends = await this.findFriendsByUserId(user.id);
+    return user;
   }
 
   public getUserByEmail(email: string): Promise<UserModel | null> {
@@ -87,10 +120,27 @@ export class UserService {
     throw new NotFoundException();
   }
 
+  public async createFriendRequest(createFriendRequestDto: CreateFriendRequestDto): Promise<FriendRequestModel | null> {
+    const requestorUser = await this.userRepository.findOne({where: {id: createFriendRequestDto.requestorId}});
+    const requesteeUser = await this.userRepository.findOne({where: {id: createFriendRequestDto.requesteeId}});
+    if (requestorUser && requesteeUser) {
+      await this.friendRequestRepository.query(
+        `
+          INSERT INTO "friend_request" ("dateCreated", "requestorId", "requesteeId")
+          VALUES ($1, $2, $3)
+        `,
+        [new Date(), createFriendRequestDto.requestorId, createFriendRequestDto.requesteeId],
+      );
+      return this.friendRequestRepository.findOne({where: {requestor: requestorUser, requestee: requesteeUser}});
+    }
+    throw new NotFoundException();
+  }
+
   public async createFriendship(friendship: CreateFriendshipDto): Promise<UserModel | null> {
-    const updateUser = await this.getUserAndFriendsByUserId(friendship.userId);
-    if (updateUser) {
-      if (_.some(updateUser.friends, (friend) => friend.id === friendship.friendId)) {
+    const updateUser = await this.getUser(friendship.requesteeId);
+    const hasRequest = !!_.find(updateUser?.requestsReceived, {requestor: {id: friendship.requestorId}});
+    if (hasRequest) {
+      if (_.some(updateUser?.friends, (friend) => friend.id === friendship.requestorId)) {
         return updateUser;
       } else {
         await this.userRepository.query(
@@ -98,9 +148,17 @@ export class UserService {
             INSERT INTO "user_friends_user" ("userId", "friendId")
             VALUES ($1, $2)
           `,
-          [friendship.userId, friendship.friendId],
+          [friendship.requesteeId, friendship.requestorId],
         );
-        return this.getUserAndFriendsByUserId(friendship.userId);
+        await this.friendRequestRepository.query(
+          `
+            DELETE FROM "friend_request"
+            WHERE "requesteeId" = $1
+            AND "requestorId" = $2
+          `,
+          [friendship.requesteeId, friendship.requestorId],
+        );
+        return this.getUser(friendship.requesteeId);
       }
     }
     throw new NotFoundException();
@@ -121,15 +179,6 @@ export class UserService {
       `,
       [id],
     );
-  }
-
-  private async getUserAndFriendsByUserId(userId: number): Promise<UserModel | null> {
-    const user = await this.userRepository.findOne({where: {id: userId}});
-    if (user) {
-      user.friends = await this.findFriendsByUserId(userId);
-      delete user?.password;
-    }
-    return user;
   }
 
   public async getUserAndFriendsbyUsername(username: string): Promise<UserModel | null> {

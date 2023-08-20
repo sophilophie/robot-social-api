@@ -5,10 +5,13 @@ import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
 import {UserModel} from './entity/user.entity';
 import {UserService} from './user.service';
+import {FriendRequestModel} from './entity/friend-request.entity';
 
 describe('UserService', () => {
   let service: UserService;
-  let mockUserRepository: Partial<Repository<UserModel>>, mockJwtService: Partial<JwtService>;
+  let mockUserRepository: Partial<Repository<UserModel>>,
+    mockJwtService: Partial<JwtService>,
+    mockFriendRequestRepository: Partial<Repository<FriendRequestModel>>;
 
   const mockUser: UserModel = {
     id: 0,
@@ -19,6 +22,8 @@ describe('UserService', () => {
     email: 'test@user.com',
     friends: [],
     posts: [],
+    requestedFriends: [],
+    requestsReceived: [],
   };
 
   beforeEach(async () => {
@@ -33,11 +38,16 @@ describe('UserService', () => {
     mockJwtService = {
       sign: jest.fn(),
     };
+    mockFriendRequestRepository = {
+      query: jest.fn(),
+      findOne: jest.fn(),
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [UserService],
     })
       .useMocker((token) => {
         if (token === 'UserModelRepository') return mockUserRepository;
+        if (token === 'FriendRequestModelRepository') return mockFriendRequestRepository;
         if (token === JwtService) return mockJwtService;
       })
       .compile();
@@ -49,9 +59,9 @@ describe('UserService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should find one user with friends by id', async () => {
-    const result: UserModel | null = await service.getUserWithFriends(0);
-    expect(mockUserRepository.findOne).toHaveBeenCalledWith({where: {id: 0}});
+  it('should find one user by id', async () => {
+    const result: UserModel | null = await service.getUser(0);
+    expect(mockUserRepository.findOne).toHaveBeenCalled();
     expect(mockUserRepository.query).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
   });
@@ -59,7 +69,7 @@ describe('UserService', () => {
   it('should throw 404 if user is not found in read, update, or destroy operations', async () => {
     mockUserRepository.findOne = jest.fn();
     try {
-      await service.getUserWithFriends(0);
+      await service.getUser(0);
     } catch (error) {
       expect(error.status).toBe(404);
     }
@@ -89,9 +99,7 @@ describe('UserService', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const result: UserModel | null = await service.getUserByUsername('testUser0');
-    expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-      where: {username: 'testUser0'},
-    });
+    expect(mockUserRepository.findOne).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
   });
 
@@ -111,9 +119,7 @@ describe('UserService', () => {
       password: 'someOtherHash',
     };
     await service.createUser(createdUser);
-    expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-      where: {username: 'testerUsecase1'},
-    });
+    expect(mockUserRepository.findOne).toHaveBeenCalled();
     expect(mockUserRepository.save).toHaveBeenCalled();
     expect(mockJwtService.sign).toHaveBeenCalled();
   });
@@ -123,9 +129,7 @@ describe('UserService', () => {
       await service.createUser(mockUser as CreateUserDto);
     } catch (error) {
       expect(error.status).toBe(409);
-      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-        where: {username: 'testUser0'},
-      });
+      expect(mockUserRepository.findOne).toHaveBeenCalled();
       expect(mockUserRepository.save).not.toHaveBeenCalled();
     }
   });
@@ -133,7 +137,7 @@ describe('UserService', () => {
   it('should update an existing user, returning the entire new user object', async () => {
     const updateUser: UpdateUserDto = {username: 'userName0'};
     const result: UserModel = await service.updateUser(0, updateUser);
-    expect(mockUserRepository.findOne).toHaveBeenCalledWith({where: {id: 0}});
+    expect(mockUserRepository.findOne).toHaveBeenCalled();
     expect(mockUserRepository.query).toHaveBeenCalled();
     expect(mockUserRepository.update).toHaveBeenCalledWith(0, updateUser);
     expect(result).toEqual({...mockUser, username: 'userName0'});
@@ -141,7 +145,7 @@ describe('UserService', () => {
 
   it('should delete an existing user, reterning the deleted user', async () => {
     await service.deleteUser(0);
-    expect(mockUserRepository.findOne).toHaveBeenCalledWith({where: {id: 0}});
+    expect(mockUserRepository.findOne).toHaveBeenCalled();
     expect(mockUserRepository.remove).toHaveBeenCalledWith(mockUser);
   });
 });

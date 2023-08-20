@@ -20,6 +20,8 @@ import {UserModel} from './entity/user.entity';
 import {UserService} from './user.service';
 import {CreateFriendshipDto} from './dto/create-friendship.dto';
 import {SameUserAuthGuard} from './same-user-auth.guard';
+import {CreateFriendRequestDto} from './dto/create-friend-request.dto';
+import {FriendRequestModel} from './entity/friend-request.entity';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('users')
@@ -33,7 +35,7 @@ export class UserController {
 
   @Get(':userId')
   public getUser(@Param('userId', ParseIntPipe) userId: number): Promise<UserModel | null> {
-    return this.userService.getUserWithFriends(userId);
+    return this.userService.getUser(userId);
   }
 
   @SkipJwtAuth()
@@ -45,6 +47,11 @@ export class UserController {
   @Post('friendship')
   public postUserFriendship(@Body() createFriendshipDto: CreateFriendshipDto): Promise<UserModel | null> {
     return this.userService.createFriendship(createFriendshipDto);
+  }
+
+  @Post('friend-request')
+  public postFriendRequest(@Body() createFriendRequestDto: CreateFriendRequestDto): Promise<FriendRequestModel | null> {
+    return this.userService.createFriendRequest(createFriendRequestDto);
   }
 
   @UseGuards(SameUserAuthGuard)
