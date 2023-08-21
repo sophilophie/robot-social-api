@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -31,6 +32,11 @@ export class UserController {
   @Get()
   public getUsers(): Promise<UserModel[]> {
     return this.userService.getUsers();
+  }
+
+  @Get('search')
+  public userSearch(@Query('searchTerm') searchTerm: string): Promise<UserModel[] | null> {
+    return this.userService.search(searchTerm);
   }
 
   @Get(':userId')
@@ -59,7 +65,7 @@ export class UserController {
   public putUser(
     @Param('userId', ParseIntPipe) userId: number,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserModel> {
+  ): Promise<UserModel | null> {
     return this.userService.updateUser(userId, updateUserDto);
   }
 

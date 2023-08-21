@@ -26,6 +26,26 @@ describe('UserService', () => {
     requestsReceived: [],
   };
 
+  const mockQueryBuilder = {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    select: () => {
+      return {
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        where: () => {
+          return {
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            orWhere: () => {
+              // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-empty-function
+              return {getMany: () => {}};
+            },
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-empty-function
+            getMany: () => {},
+          };
+        },
+      };
+    },
+  };
+
   beforeEach(async () => {
     mockUserRepository = {
       findOne: jest.fn().mockResolvedValue(mockUser),
@@ -34,6 +54,7 @@ describe('UserService', () => {
       update: jest.fn(),
       remove: jest.fn(),
       query: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
     };
     mockJwtService = {
       sign: jest.fn(),
@@ -136,7 +157,7 @@ describe('UserService', () => {
 
   it('should update an existing user, returning the entire new user object', async () => {
     const updateUser: UpdateUserDto = {username: 'userName0'};
-    const result: UserModel = await service.updateUser(0, updateUser);
+    const result: UserModel | null = await service.updateUser(0, updateUser);
     expect(mockUserRepository.findOne).toHaveBeenCalled();
     expect(mockUserRepository.query).toHaveBeenCalled();
     expect(mockUserRepository.update).toHaveBeenCalledWith(0, updateUser);
@@ -147,5 +168,10 @@ describe('UserService', () => {
     await service.deleteUser(0);
     expect(mockUserRepository.findOne).toHaveBeenCalled();
     expect(mockUserRepository.remove).toHaveBeenCalledWith(mockUser);
+  });
+
+  it('should search for users', async () => {
+    await service.search('test user');
+    expect(mockUserRepository.createQueryBuilder).toHaveBeenCalled();
   });
 });

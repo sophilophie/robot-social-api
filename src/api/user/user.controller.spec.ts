@@ -28,6 +28,7 @@ describe('UserController', () => {
       createUser: jest.fn(),
       updateUser: jest.fn(),
       deleteUser: jest.fn(),
+      search: jest.fn(),
     };
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
@@ -56,5 +57,7 @@ describe('UserController', () => {
     expect(mockUserService.updateUser).toHaveBeenCalledWith(0, testPutUserDto);
     controller.deleteUser(0);
     expect(mockUserService.deleteUser).toHaveBeenCalledWith(0);
+    controller.userSearch('searchTerm');
+    expect(mockUserService.search).toHaveBeenCalled();
   });
 });
