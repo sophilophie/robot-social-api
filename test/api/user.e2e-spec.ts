@@ -31,6 +31,7 @@ describe('user (e2e)', () => {
     ],
     requestedFriends: [],
     requestsReceived: [],
+    posts: [],
   };
 
   beforeAll(async () => {
@@ -163,6 +164,32 @@ describe('user (e2e)', () => {
       .expect((res) => {
         expect(res.body).toEqual([expectedUser, expectedUserTwo]);
         expect(res.body instanceof Array).toBe(true);
+      });
+  });
+
+  it('GET /users/search', () => {
+    const expectedResponse = [
+      {
+        id: 1,
+        username: 'TestUser1',
+        firstName: 'test',
+        lastName: 'user',
+        email: 'test@email.com',
+      },
+      {
+        id: 2,
+        username: 'TestUser2',
+        firstName: 'test2',
+        lastName: 'user2',
+        email: 'test2@email.com',
+      },
+    ];
+    return request(app.getHttpServer())
+      .get('/users/search?searchTerm=testuser')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual(expectedResponse);
       });
   });
 

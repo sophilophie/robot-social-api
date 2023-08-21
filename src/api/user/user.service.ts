@@ -2,7 +2,7 @@ import {ConflictException, Injectable, InternalServerErrorException, NotFoundExc
 import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
 import {UserModel} from './entity/user.entity';
-import {Repository} from 'typeorm';
+import {Like, Raw, Repository} from 'typeorm';
 import {InjectRepository} from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import {JwtPayload, JwtResponse} from '../auth/auth-types';
@@ -73,6 +73,34 @@ export class UserService {
     return this.userRepository.find({select: ['firstName', 'lastName', 'username', 'email', 'id']});
   }
 
+  public search(searchTerm: string): Promise<UserModel[] | null> {
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.email', 'user.username', 'user.firstName', 'user.lastName'])
+      .where(
+        'LOWER(user.username) LIKE :term OR LOWER(user.email) LIKE :term OR LOWER(user.firstName) LIKE :term OR LOWER(user.lastName) LIKE :term',
+        {
+          term: `%${searchTerm.toLowerCase()}%`,
+        },
+      );
+
+    const spaceSeparated = searchTerm.split(' ');
+    if (spaceSeparated.length === 2) {
+      if (spaceSeparated[0].includes(',')) {
+        spaceSeparated[0] = spaceSeparated[0].substring(0, spaceSeparated[0].length - 1);
+      }
+      query.orWhere(
+        'LOWER(user.firstName) LIKE :firstTerm AND LOWER(user.lastName) LIKE :lastTerm OR LOWER(user.firstName) LIKE :lastTerm AND LOWER(user.lastName) LIKE :firstTerm ',
+        {
+          firstTerm: `%${spaceSeparated[0].toLowerCase()}%`,
+          lastTerm: `%${spaceSeparated[1].toLowerCase()}%`,
+        },
+      );
+    }
+
+    return query.getMany();
+  }
+
   public async createUser(user: CreateUserDto): Promise<JwtResponse> {
     const {username, firstName, lastName, email, password}: CreateUserDto = user;
     // It seems more likely that a conflicting username exists than a conflicting email, so we cascade.
@@ -100,14 +128,12 @@ export class UserService {
     throw new InternalServerErrorException();
   }
 
-  public async updateUser(userId: number, user: UpdateUserDto): Promise<UserModel> {
+  public async updateUser(userId: number, user: UpdateUserDto): Promise<UserModel | null> {
     const updateUser = await this.userRepository.findOne({where: {id: userId}});
     if (updateUser) {
       await this.userRepository.update(userId, user);
-      const updateUserFriends = await this.findFriendsByUserId(updateUser.id);
-      updateUser.friends = updateUserFriends;
-      delete updateUser?.password;
-      return {...updateUser, ...user};
+      const userAfterUpdate = await this.getUser(updateUser.id);
+      return userAfterUpdate;
     }
     throw new NotFoundException();
   }

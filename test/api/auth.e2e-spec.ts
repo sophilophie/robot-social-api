@@ -26,6 +26,9 @@ describe('user (e2e)', () => {
     email: 'test@auth.com',
     id: 1,
     friends: [],
+    posts: [],
+    requestedFriends: [],
+    requestsReceived: [],
   };
 
   beforeAll(async () => {
