@@ -2,7 +2,7 @@ import {ConflictException, Injectable, InternalServerErrorException, NotFoundExc
 import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
 import {UserModel} from './entity/user.entity';
-import {Like, Raw, Repository} from 'typeorm';
+import {Repository} from 'typeorm';
 import {InjectRepository} from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import {JwtPayload, JwtResponse} from '../auth/auth-types';
@@ -32,7 +32,7 @@ export class UserService {
         email: true,
       },
       where: {id: userId},
-      relations: {posts: true, requestedFriends: {requestee: true}, requestsReceived: {requestor: true}},
+      relations: {requestedFriends: {requestee: true}, requestsReceived: {requestor: true}},
     });
     if (user) {
       return await this.clearPasswordsAndAppendFriends(user);
@@ -43,7 +43,7 @@ export class UserService {
   public async getUserByUsername(username: string): Promise<UserModel | null> {
     const user = await this.userRepository.findOne({
       where: {username},
-      relations: {posts: true, requestedFriends: {requestee: true}, requestsReceived: {requestor: true}},
+      relations: {requestedFriends: {requestee: true}, requestsReceived: {requestor: true}},
     });
     if (user) {
       return await this.clearPasswordsAndAppendFriends(user);
