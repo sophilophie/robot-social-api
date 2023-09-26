@@ -1,4 +1,4 @@
-import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn} from 'typeorm';
 import {UserModel} from '../../user/entity/user.entity';
 
 @Entity('post')
@@ -9,8 +9,11 @@ export class PostModel {
   @Column('varchar', {length: 255})
   public content: string;
 
-  @Column('timestamp')
-  public timePosted: Date;
+  @CreateDateColumn()
+  public dateCreated: Date;
+
+  @UpdateDateColumn()
+  public dateUpdated: Date;
 
   @ManyToOne(() => UserModel, (user: UserModel) => user.posts)
   public user: UserModel;

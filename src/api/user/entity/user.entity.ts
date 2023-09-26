@@ -1,4 +1,4 @@
-import {Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn} from 'typeorm';
 import {PostModel} from '../../post/entity/post.entity';
 import {FriendRequestModel} from './friend-request.entity';
 import {FriendshipModel} from './friendship.entity';
@@ -7,6 +7,12 @@ import {FriendshipModel} from './friendship.entity';
 export class UserModel {
   @PrimaryGeneratedColumn()
   public id: number;
+
+  @CreateDateColumn()
+  public dateCreated: Date;
+
+  @UpdateDateColumn()
+  public dateUpdated: Date;
 
   @Column({unique: true})
   public username: string;

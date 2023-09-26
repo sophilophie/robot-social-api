@@ -16,6 +16,8 @@ describe('PostService', () => {
 
   const mockUser = {
     id: 0,
+    dateCreated: new Date(),
+    dateUpdated: new Date(),
     firstName: 'Test',
     lastName: 'User',
     username: 'testUser0',

@@ -25,7 +25,6 @@ export class PostService {
     if (postUser) {
       const newPost = new PostModel();
       newPost.content = createPostDto.content;
-      newPost.timePosted = new Date();
       newPost.user = postUser;
       const createdPost = await this.postRepository.save(newPost);
       delete createdPost?.user?.password;
