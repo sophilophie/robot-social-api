@@ -21,8 +21,8 @@ describe('auth (e2e)', () => {
 
   const expectedUser = {
     username: 'testAuth',
-    firstName: 'test',
-    lastName: 'auth',
+    firstName: 'Test',
+    lastName: 'Auth',
     email: 'test@auth.com',
     id: 1,
     friendships: [],

@@ -110,8 +110,8 @@ export class UserService {
     if (createdUser) throw new ConflictException();
     createdUser = new UserModel();
     createdUser.username = username;
-    createdUser.firstName = firstName;
-    createdUser.lastName = lastName;
+    createdUser.firstName = this.titleCase(firstName);
+    createdUser.lastName = this.titleCase(lastName);
     createdUser.email = email;
     createdUser.password = bcrypt.hashSync(password, bcrypt.genSaltSync());
 
@@ -225,5 +225,15 @@ export class UserService {
 
   public async getUserAndFriendsByUsername(username: string): Promise<UserModel | null> {
     return this.userRepository.findOne({where: {username}, relations: {friendships: true}});
+  }
+
+  private titleCase(input: string): string {
+    const words = input.split(' ');
+    const capitalizedWords = words.map((word) => {
+      if (word) {
+        return word[0].toUpperCase() + word.slice(1).toLowerCase();
+      }
+    });
+    return capitalizedWords.join(' ');
   }
 }
