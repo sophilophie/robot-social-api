@@ -154,10 +154,10 @@ export class UserService {
     if (requestorUser && requesteeUser) {
       await this.friendRequestRepository.query(
         `
-          INSERT INTO "friend_request" ("dateCreated", "requestorId", "requesteeId")
-          VALUES ($1, $2, $3)
+          INSERT INTO "friend_request" ("requestorId", "requesteeId")
+          VALUES ($1, $2)
         `,
-        [new Date(), createFriendRequestDto.requestorId, createFriendRequestDto.requesteeId],
+        [createFriendRequestDto.requestorId, createFriendRequestDto.requesteeId],
       );
       return this.friendRequestRepository.findOne({where: {requestor: requestorUser, requestee: requesteeUser}});
     }
@@ -168,15 +168,15 @@ export class UserService {
     const updateUser = await this.getUser(friendship.requesteeId);
     const hasRequest = !!_.find(updateUser?.requestsReceived, {requestor: {id: friendship.requestorId}});
     if (hasRequest) {
-      if (_.some(updateUser?.friendships, (friend) => friend.id === friendship.requestorId)) {
+      if (_.some(updateUser?.friendships, (friend: FriendshipModel) => friend.friend.id === friendship.requestorId)) {
         return updateUser;
       } else {
         await this.userRepository.query(
           `
-            INSERT INTO "friendship" ("dateCreated", "userId", "friendId")
-            VALUES ($1, $2, $3)
+            INSERT INTO "friendship" ("userId", "friendId")
+            VALUES ($1, $2)
           `,
-          [new Date(), friendship.requesteeId, friendship.requestorId],
+          [friendship.requesteeId, friendship.requestorId],
         );
         await this.friendRequestRepository.query(
           `

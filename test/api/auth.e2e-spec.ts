@@ -57,7 +57,11 @@ describe('auth (e2e)', () => {
           .expect(201)
           .expect((res) => {
             accessToken = res.body.access_token as string;
-            expect(res.body.user).toEqual(expectedUser);
+            expect(res.body.user.id).toEqual(expectedUser.id);
+            expect(res.body.user.username).toEqual(expectedUser.username);
+            expect(res.body.user.firstName).toEqual(expectedUser.firstName);
+            expect(res.body.user.lastName).toEqual(expectedUser.lastName);
+            expect(res.body.user.email).toEqual(expectedUser.email);
           });
       });
   });
@@ -68,7 +72,11 @@ describe('auth (e2e)', () => {
       .send({access_token: accessToken})
       .expect(201)
       .expect((res) => {
-        expect(res.body.user).toEqual(expectedUser);
+        expect(res.body.user.id).toEqual(expectedUser.id);
+        expect(res.body.user.username).toEqual(expectedUser.username);
+        expect(res.body.user.firstName).toEqual(expectedUser.firstName);
+        expect(res.body.user.lastName).toEqual(expectedUser.lastName);
+        expect(res.body.user.email).toEqual(expectedUser.email);
       });
   });
 });

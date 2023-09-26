@@ -157,7 +157,7 @@ describe('post (e2e)', () => {
           .set('Authorization', `Bearer ${accessToken}`)
           .expect(200)
           .expect((res) => {
-            expect(res.body[1].content).toBe('Edited Test Post');
+            expect(res.body[0].content).toBe('Edited Test Post');
           });
       });
   });

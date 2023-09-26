@@ -1,4 +1,4 @@
-import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
+import {CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {UserModel} from './user.entity';
 
 @Entity('friendship')
@@ -6,7 +6,7 @@ export class FriendshipModel {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column()
+  @CreateDateColumn()
   public dateCreated: Date;
 
   @ManyToOne(() => UserModel, (user: UserModel) => user.friendships, {

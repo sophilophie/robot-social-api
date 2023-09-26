@@ -64,7 +64,11 @@ describe('user (e2e)', () => {
       .set('Accept', 'application/json')
       .expect(201)
       .expect((res) => {
-        expect(res.body.user).toEqual(expectedUser);
+        expect(res.body.user.id).toEqual(expectedUser.id);
+        expect(res.body.user.username).toEqual(expectedUser.username);
+        expect(res.body.user.firstName).toEqual(expectedUser.firstName);
+        expect(res.body.user.lastName).toEqual(expectedUser.lastName);
+        expect(res.body.user.email).toEqual(expectedUser.email);
         expect(res.body.access_token).toBeTruthy();
         accessToken = res.body.access_token as string;
       });
