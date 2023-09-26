@@ -17,7 +17,7 @@ export class PostService {
 
   public async getPostsByUserId(userId: number): Promise<PostModel[]> {
     const userPosts = await this.postRepository.find({where: {user: {id: userId}}});
-    return _.orderBy(userPosts, ['timePosted'], ['desc']);
+    return _.orderBy(userPosts, ['dateUpdated'], ['desc']);
   }
 
   public async createPost(createPostDto: CreatePostDto): Promise<PostModel> {
@@ -62,7 +62,7 @@ export class PostService {
     });
     const requestingUserPosts = await this.postRepository.find({where: {user: {id: userId}}, relations: {user: true}});
     newsFeed = newsFeed.concat(requestingUserPosts);
-    newsFeed = _.orderBy(newsFeed, ['timePosted'], ['desc']);
+    newsFeed = _.orderBy(newsFeed, ['dateUpdated'], ['desc']);
     return newsFeed;
   }
 }
