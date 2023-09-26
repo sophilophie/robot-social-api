@@ -40,8 +40,8 @@ describe('post (e2e)', () => {
     const expectedUser = {
       id: 1,
       username: 'TestUser1',
-      firstName: 'test',
-      lastName: 'user',
+      firstName: 'Test',
+      lastName: 'User',
       email: 'test@email.com',
       friendships: [],
       requestedFriends: [],
@@ -100,7 +100,7 @@ describe('post (e2e)', () => {
   it('GET /posts/feed/:userId', async () => {
     const newUserTwo = {
       username: 'TestUser2',
-      firstName: 'test',
+      firstName: 'Test',
       lastName: 'user',
       email: 'test2@email.com',
       password: 'TestPassword01',

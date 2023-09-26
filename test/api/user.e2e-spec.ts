@@ -12,8 +12,8 @@ describe('user (e2e)', () => {
   let app: INestApplication;
   const expectedUser = {
     username: 'TestUser1',
-    firstName: 'test',
-    lastName: 'user',
+    firstName: 'Test',
+    lastName: 'User',
     email: 'test@email.com',
     id: 1,
   };
@@ -23,8 +23,8 @@ describe('user (e2e)', () => {
     friendships: [
       {
         username: 'TestUser2',
-        firstName: 'test2',
-        lastName: 'user2',
+        firstName: 'Test2',
+        lastName: 'User2',
         email: 'test2@email.com',
         id: 2,
       },
@@ -52,8 +52,8 @@ describe('user (e2e)', () => {
   it('POST /users', () => {
     const newUserOne = {
       username: 'TestUser1',
-      firstName: 'test',
-      lastName: 'user',
+      firstName: 'Test',
+      lastName: 'User',
       email: 'test@email.com',
       password: 'TestPassword01',
     };
@@ -77,8 +77,8 @@ describe('user (e2e)', () => {
     };
     const newUserTwo = {
       username: 'TestUser2',
-      firstName: 'test2',
-      lastName: 'user2',
+      firstName: 'Test2',
+      lastName: 'User2',
       email: 'test2@email.com',
       password: 'TestPassword01',
     };
@@ -134,8 +134,8 @@ describe('user (e2e)', () => {
   it('GET /users', () => {
     const expectedUserTwo = {
       username: 'TestUser2',
-      firstName: 'test2',
-      lastName: 'user2',
+      firstName: 'Test2',
+      lastName: 'User2',
       email: 'test2@email.com',
       id: 2,
     };
@@ -154,15 +154,15 @@ describe('user (e2e)', () => {
       {
         id: 1,
         username: 'TestUser1',
-        firstName: 'test',
-        lastName: 'user',
+        firstName: 'Test',
+        lastName: 'User',
         email: 'test@email.com',
       },
       {
         id: 2,
         username: 'TestUser2',
-        firstName: 'test2',
-        lastName: 'user2',
+        firstName: 'Test2',
+        lastName: 'User2',
         email: 'test2@email.com',
       },
     ];
