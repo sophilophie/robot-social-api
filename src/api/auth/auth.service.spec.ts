@@ -18,7 +18,7 @@ describe('AuthService', () => {
     username: 'testUser0',
     password: 'someHash',
     email: 'test@user.com',
-    friends: [],
+    friendships: [],
     posts: [],
     requestedFriends: [],
     requestsReceived: [],

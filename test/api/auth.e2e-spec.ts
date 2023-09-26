@@ -8,7 +8,7 @@ import {UserModel} from '../../src/api/user/entity/user.entity';
 let accessToken: string;
 let userRepository: Repository<UserModel>;
 
-describe('user (e2e)', () => {
+describe('auth (e2e)', () => {
   let app: INestApplication;
 
   const testUser = {
@@ -25,8 +25,7 @@ describe('user (e2e)', () => {
     lastName: 'auth',
     email: 'test@auth.com',
     id: 1,
-    friends: [],
-    posts: [],
+    friendships: [],
     requestedFriends: [],
     requestsReceived: [],
   };

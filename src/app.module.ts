@@ -1,6 +1,4 @@
 import {Module} from '@nestjs/common';
-import {AppController} from './app.controller';
-import {AppService} from './app.service';
 import {UserModule} from './api/user/user.module';
 import {ConfigModule} from '@nestjs/config';
 import {getEnvPath} from './common/helpers/env.helper';
@@ -21,7 +19,6 @@ const envFilePath: string = getEnvPath(`${__dirname}/common/envs`);
     AuthModule,
     PostModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, {provide: APP_GUARD, useClass: JwtAuthGuard}],
+  providers: [{provide: APP_GUARD, useClass: JwtAuthGuard}],
 })
 export class AppModule {}

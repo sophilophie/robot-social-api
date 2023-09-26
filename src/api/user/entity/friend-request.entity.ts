@@ -9,9 +9,13 @@ export class FriendRequestModel {
   @Column()
   public dateCreated: Date;
 
-  @ManyToOne(() => UserModel, (user: UserModel) => user.requestedFriends)
+  @ManyToOne(() => UserModel, (user: UserModel) => user.requestedFriends, {
+    onDelete: 'CASCADE',
+  })
   public requestor: UserModel;
 
-  @ManyToOne(() => UserModel, (user: UserModel) => user.requestsReceived)
+  @ManyToOne(() => UserModel, (user: UserModel) => user.requestsReceived, {
+    onDelete: 'CASCADE',
+  })
   public requestee: UserModel;
 }

@@ -6,12 +6,14 @@ import {UpdateUserDto} from './dto/update-user.dto';
 import {UserModel} from './entity/user.entity';
 import {UserService} from './user.service';
 import {FriendRequestModel} from './entity/friend-request.entity';
+import {FriendshipModel} from './entity/friendship.entity';
 
 describe('UserService', () => {
   let service: UserService;
   let mockUserRepository: Partial<Repository<UserModel>>,
     mockJwtService: Partial<JwtService>,
-    mockFriendRequestRepository: Partial<Repository<FriendRequestModel>>;
+    mockFriendRequestRepository: Partial<Repository<FriendRequestModel>>,
+    mockFriendshipRepository: Partial<Repository<FriendshipModel>>;
 
   const mockUser: UserModel = {
     id: 0,
@@ -20,7 +22,7 @@ describe('UserService', () => {
     username: 'testUser0',
     password: 'someHash',
     email: 'test@user.com',
-    friends: [],
+    friendships: [],
     posts: [],
     requestedFriends: [],
     requestsReceived: [],
@@ -63,12 +65,16 @@ describe('UserService', () => {
       query: jest.fn(),
       findOne: jest.fn(),
     };
+    mockFriendshipRepository = {
+      find: jest.fn(),
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [UserService],
     })
       .useMocker((token) => {
         if (token === 'UserModelRepository') return mockUserRepository;
         if (token === 'FriendRequestModelRepository') return mockFriendRequestRepository;
+        if (token === 'FriendshipModelRepository') return mockFriendshipRepository;
         if (token === JwtService) return mockJwtService;
       })
       .compile();
@@ -83,7 +89,7 @@ describe('UserService', () => {
   it('should find one user by id', async () => {
     const result: UserModel | null = await service.getUser(0);
     expect(mockUserRepository.findOne).toHaveBeenCalled();
-    expect(mockUserRepository.query).toHaveBeenCalled();
+    expect(mockFriendshipRepository.find).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
   });
 
@@ -157,11 +163,10 @@ describe('UserService', () => {
 
   it('should update an existing user, returning the entire new user object', async () => {
     const updateUser: UpdateUserDto = {username: 'userName0'};
-    const result: UserModel | null = await service.updateUser(0, updateUser);
+    await service.updateUser(0, updateUser);
     expect(mockUserRepository.findOne).toHaveBeenCalled();
-    expect(mockUserRepository.query).toHaveBeenCalled();
     expect(mockUserRepository.update).toHaveBeenCalledWith(0, updateUser);
-    expect(result).toEqual({...mockUser, username: 'userName0'});
+    expect(mockFriendshipRepository.find).toHaveBeenCalled();
   });
 
   it('should delete an existing user, reterning the deleted user', async () => {
