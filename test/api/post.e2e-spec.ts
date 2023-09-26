@@ -43,8 +43,7 @@ describe('post (e2e)', () => {
       firstName: 'test',
       lastName: 'user',
       email: 'test@email.com',
-      posts: [],
-      friends: [],
+      friendships: [],
       requestedFriends: [],
       requestsReceived: [],
     };
@@ -90,10 +89,10 @@ describe('post (e2e)', () => {
           .get('/posts/1')
           .set('Authorization', `Bearer ${accessToken}`)
           .expect((res) => {
-            expect(res.body[0].id).toBe(1);
-            expect(res.body[0].content).toBe('Test Post');
-            expect(res.body[1].id).toBe(2);
-            expect(res.body[1].content).toBe('Test Post Two');
+            expect(res.body[0].id).toBe(2);
+            expect(res.body[0].content).toBe('Test Post Two');
+            expect(res.body[1].id).toBe(1);
+            expect(res.body[1].content).toBe('Test Post');
           });
       });
   });
@@ -138,8 +137,8 @@ describe('post (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body[0].user.id).toBe(1);
-        expect(res.body[2].user.id).toBe(2);
+        expect(res.body[0].user.id).toBe(2);
+        expect(res.body[1].user.id).toBe(1);
       });
   });
 

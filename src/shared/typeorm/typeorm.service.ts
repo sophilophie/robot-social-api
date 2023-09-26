@@ -4,6 +4,7 @@ import {TypeOrmOptionsFactory, TypeOrmModuleOptions} from '@nestjs/typeorm';
 import {PostModel} from '../../api/post/entity/post.entity';
 import {UserModel} from '../../api/user/entity/user.entity';
 import {FriendRequestModel} from '../../api/user/entity/friend-request.entity';
+import {FriendshipModel} from '../../api/user/entity/friendship.entity';
 
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
@@ -18,7 +19,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
         database: this.config.get<string>('DATABASE_NAME'),
         username: this.config.get<string>('DATABASE_USER'),
         password: this.config.get<string>('DATABASE_PASSWORD'),
-        entities: [UserModel, PostModel, FriendRequestModel],
+        entities: [UserModel, PostModel, FriendRequestModel, FriendshipModel],
         migrations: ['dist/migrations/*.{ts,js}'],
         migrationsTableName: 'typeorm_migrations',
         logger: 'file',

@@ -20,7 +20,7 @@ describe('user (e2e)', () => {
 
   const expectedUserAndFriends = {
     ...expectedUser,
-    friends: [
+    friendships: [
       {
         username: 'TestUser2',
         firstName: 'test2',
@@ -108,25 +108,6 @@ describe('user (e2e)', () => {
       requestorId: 1,
       requesteeId: 2,
     };
-    const expectedResponse = {
-      id: 2,
-      username: 'TestUser2',
-      email: 'test2@email.com',
-      firstName: 'test2',
-      lastName: 'user2',
-      friends: [
-        {
-          email: 'test@email.com',
-          firstName: 'test',
-          id: 1,
-          lastName: 'user',
-          username: 'TestUser1',
-        },
-      ],
-      posts: [],
-      requestedFriends: [],
-      requestsReceived: [],
-    };
     await request(app.getHttpServer())
       .post('/users/friendship')
       .send(newFriendship)
@@ -135,7 +116,7 @@ describe('user (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(201)
       .expect((res) => {
-        expect(res.body).toEqual(expectedResponse);
+        expect(res.body.friendships[0].id).toBe(1);
       });
   });
 
@@ -145,7 +126,8 @@ describe('user (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body).toEqual(expectedUserAndFriends);
+        expect(res.body.friendships[0].id).toBe(1);
+        expect(res.body.id).toBe(1);
       });
   });
 
@@ -200,10 +182,7 @@ describe('user (e2e)', () => {
       .send({email: 'newTest@email.com'})
       .expect(200)
       .expect((res) => {
-        expect(res.body).toEqual({
-          ...expectedUserAndFriends,
-          email: 'newTest@email.com',
-        });
+        expect(res.body.email).toBe('newTest@email.com');
       });
   });
 

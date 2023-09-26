@@ -54,8 +54,11 @@ export class PostService {
   public async getNewsFeedByUserId(userId: number): Promise<PostModel[]> {
     let newsFeed: PostModel[] = [];
     const requestingUser = await this.userService.getUser(userId);
-    _.forEach(requestingUser?.friends, async (friend) => {
-      const friendPosts = await this.postRepository.find({where: {user: {id: friend.id}}, relations: {user: true}});
+    _.forEach(requestingUser?.friendships, async (friendships) => {
+      const friendPosts = await this.postRepository.find({
+        where: {user: {id: friendships.friend.id}},
+        relations: {user: true},
+      });
       newsFeed = newsFeed.concat(friendPosts);
     });
     const requestingUserPosts = await this.postRepository.find({where: {user: {id: userId}}, relations: {user: true}});

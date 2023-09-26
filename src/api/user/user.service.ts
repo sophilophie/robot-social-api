@@ -11,6 +11,7 @@ import {CreateFriendshipDto} from './dto/create-friendship.dto';
 import * as _ from 'lodash';
 import {FriendRequestModel} from './entity/friend-request.entity';
 import {CreateFriendRequestDto} from './dto/create-friend-request.dto';
+import {FriendshipModel} from './entity/friendship.entity';
 
 @Injectable()
 export class UserService {
@@ -19,6 +20,8 @@ export class UserService {
     private readonly userRepository: Repository<UserModel>,
     @InjectRepository(FriendRequestModel)
     private readonly friendRequestRepository: Repository<FriendRequestModel>,
+    @InjectRepository(FriendshipModel)
+    private readonly friendshipRepository: Repository<FriendshipModel>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -32,37 +35,36 @@ export class UserService {
         email: true,
       },
       where: {id: userId},
-      relations: {requestedFriends: {requestee: true}, requestsReceived: {requestor: true}},
+      relations: {
+        requestedFriends: {requestee: true},
+        requestsReceived: {requestor: true},
+      },
     });
     if (user) {
-      return await this.clearPasswordsAndAppendFriends(user);
+      const strippedUser = this.stripPasswordsFromFriendRequests(user);
+      return this.getFriendshipsForUser(strippedUser);
     }
     throw new NotFoundException();
+  }
+
+  public async getUserWithPosts(userId: number): Promise<UserModel | null> {
+    const user = await this.userRepository.findOne({where: {id: userId}, relations: {posts: true}});
+    return user;
   }
 
   public async getUserByUsername(username: string): Promise<UserModel | null> {
     const user = await this.userRepository.findOne({
       where: {username},
-      relations: {requestedFriends: {requestee: true}, requestsReceived: {requestor: true}},
+      relations: {
+        requestedFriends: {requestee: true},
+        requestsReceived: {requestor: true},
+      },
     });
     if (user) {
-      return await this.clearPasswordsAndAppendFriends(user);
+      const strippedUser = this.stripPasswordsFromFriendRequests(user);
+      return this.getFriendshipsForUser(strippedUser);
     }
     return null;
-  }
-
-  private async clearPasswordsAndAppendFriends(user: UserModel): Promise<UserModel> {
-    _.forEach(user.requestsReceived, (friendRequest) => {
-      delete friendRequest?.requestor?.password;
-    });
-    _.forEach(user.requestedFriends, (friendRequest) => {
-      delete friendRequest?.requestee?.password;
-    });
-    _.forEach(user.friends, (friend) => {
-      delete friend?.password;
-    });
-    user.friends = await this.findFriendsByUserId(user.id);
-    return user;
   }
 
   public getUserByEmail(email: string): Promise<UserModel | null> {
@@ -166,15 +168,15 @@ export class UserService {
     const updateUser = await this.getUser(friendship.requesteeId);
     const hasRequest = !!_.find(updateUser?.requestsReceived, {requestor: {id: friendship.requestorId}});
     if (hasRequest) {
-      if (_.some(updateUser?.friends, (friend) => friend.id === friendship.requestorId)) {
+      if (_.some(updateUser?.friendships, (friend) => friend.id === friendship.requestorId)) {
         return updateUser;
       } else {
         await this.userRepository.query(
           `
-            INSERT INTO "user_friends_user" ("userId", "friendId")
-            VALUES ($1, $2)
+            INSERT INTO "friendship" ("dateCreated", "userId", "friendId")
+            VALUES ($1, $2, $3)
           `,
-          [friendship.requesteeId, friendship.requestorId],
+          [new Date(), friendship.requesteeId, friendship.requestorId],
         );
         await this.friendRequestRepository.query(
           `
@@ -190,24 +192,38 @@ export class UserService {
     throw new NotFoundException();
   }
 
-  private findFriendsByUserId(id: number): Promise<UserModel[]> {
-    return this.userRepository.query(
-      `
-        SELECT id,username,"firstName","lastName",email
-        FROM "user" AS U
-        WHERE U.id <> $1
-          AND EXISTS(
-            SELECT 1
-            FROM "user_friends_user" AS F
-            WHERE (F."userId" = $1 AND F."friendId" = U.id)
-            OR (F."friendId" = $1 AND F."userId" = U.id)
-          )
-      `,
-      [id],
-    );
+  private stripPasswordsFromFriendRequests(user: UserModel): UserModel {
+    if (user.requestedFriends.length > 0) {
+      user.requestedFriends.forEach((requestedFriend) => {
+        delete requestedFriend.requestee.password;
+      });
+    }
+    if (user.requestsReceived.length > 0) {
+      user.requestsReceived.forEach((receivedRequest) => {
+        delete receivedRequest.requestor.password;
+      });
+    }
+    return user;
   }
 
-  public async getUserAndFriendsbyUsername(username: string): Promise<UserModel | null> {
-    return this.userRepository.findOne({where: {username}, relations: {friends: true}});
+  private async getFriendshipsForUser(user: UserModel): Promise<UserModel> {
+    user.friendships = await this.friendshipRepository.find({
+      where: [{user: {id: user.id}}, {friend: {id: user.id}}],
+      relations: {user: true, friend: true},
+    });
+    user.friendships?.forEach((friendship: Partial<FriendshipModel>) => {
+      if (friendship?.user?.id === user.id) {
+        delete friendship.user;
+      } else if (friendship?.friend?.id === user.id) {
+        friendship.friend = friendship.user;
+        delete friendship.user;
+      }
+      delete friendship.friend?.password;
+    });
+    return user;
+  }
+
+  public async getUserAndFriendsByUsername(username: string): Promise<UserModel | null> {
+    return this.userRepository.findOne({where: {username}, relations: {friendships: true}});
   }
 }
