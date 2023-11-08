@@ -3,8 +3,8 @@ import {UserModel} from '../../user/entity/user.entity';
 
 @Entity('post')
 export class PostModel {
-  @PrimaryGeneratedColumn()
-  public id: number;
+  @PrimaryGeneratedColumn('uuid')
+  public id: string;
 
   @Column('varchar', {length: 255})
   public content: string;

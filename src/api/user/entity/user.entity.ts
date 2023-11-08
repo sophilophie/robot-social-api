@@ -5,8 +5,8 @@ import {FriendshipModel} from './friendship.entity';
 
 @Entity('user')
 export class UserModel {
-  @PrimaryGeneratedColumn()
-  public id: number;
+  @PrimaryGeneratedColumn('uuid')
+  public id: string;
 
   @CreateDateColumn()
   public dateCreated: Date;
@@ -32,7 +32,7 @@ export class UserModel {
   @OneToMany(() => PostModel, (post: PostModel) => post.user)
   public posts: PostModel[];
 
-  @OneToMany(() => FriendshipModel, (friendship: FriendshipModel) => friendship.user || friendship.friend)
+  @OneToMany(() => FriendshipModel, (friendship: FriendshipModel) => friendship.user ?? friendship.friend)
   public friendships: FriendshipModel[];
 
   @OneToMany(() => FriendRequestModel, (friendRequest: FriendRequestModel) => friendRequest.requestor)

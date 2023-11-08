@@ -6,7 +6,6 @@ import {
   Get,
   InternalServerErrorException,
   Param,
-  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -41,7 +40,7 @@ export class UserController {
   }
 
   @Get(':userId')
-  public getUser(@Param('userId', ParseIntPipe) userId: number): Promise<UserModel | null> {
+  public getUser(@Param('userId') userId: string): Promise<UserModel | null> {
     return this.userService.getUser(userId);
   }
 
@@ -63,16 +62,13 @@ export class UserController {
 
   @UseGuards(SameUserAuthGuard)
   @Put(':userId')
-  public putUser(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserModel | null> {
+  public putUser(@Param('userId') userId: string, @Body() updateUserDto: UpdateUserDto): Promise<UserModel | null> {
     return this.userService.updateUser(userId, updateUserDto);
   }
 
   @UseGuards(SameUserAuthGuard)
   @Delete(':userId')
-  public deleteUser(@Param('userId', ParseIntPipe) userId: number): Promise<UserModel> {
+  public deleteUser(@Param('userId') userId: string): Promise<UserModel> {
     return this.userService.deleteUser(userId);
   }
 }

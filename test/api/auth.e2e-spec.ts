@@ -24,7 +24,6 @@ describe('auth (e2e)', () => {
     firstName: 'Test',
     lastName: 'Auth',
     email: 'test@auth.com',
-    id: 1,
     friendships: [],
     requestedFriends: [],
     requestsReceived: [],
@@ -57,7 +56,6 @@ describe('auth (e2e)', () => {
           .expect(201)
           .expect((res) => {
             accessToken = res.body.access_token as string;
-            expect(res.body.user.id).toEqual(expectedUser.id);
             expect(res.body.user.username).toEqual(expectedUser.username);
             expect(res.body.user.firstName).toEqual(expectedUser.firstName);
             expect(res.body.user.lastName).toEqual(expectedUser.lastName);
@@ -72,7 +70,6 @@ describe('auth (e2e)', () => {
       .send({access_token: accessToken})
       .expect(201)
       .expect((res) => {
-        expect(res.body.user.id).toEqual(expectedUser.id);
         expect(res.body.user.username).toEqual(expectedUser.username);
         expect(res.body.user.firstName).toEqual(expectedUser.firstName);
         expect(res.body.user.lastName).toEqual(expectedUser.lastName);

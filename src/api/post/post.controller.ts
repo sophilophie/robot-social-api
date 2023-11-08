@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Post, Put, UseGuards} from '@nestjs/common';
 import {PostService} from './post.service';
 import {PostModel} from './entity/post.entity';
 import {CreatePostDto} from './dto/create-post.dto';
@@ -11,13 +11,13 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Get(':userId')
-  public getPostsByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<PostModel[]> {
+  public getPostsByUserId(@Param('userId') userId: string): Promise<PostModel[]> {
     return this.postService.getPostsByUserId(userId);
   }
 
   @UseGuards(SameUserAuthGuard)
   @Get('feed/:userId')
-  public getNewsFeed(@Param('userId', ParseIntPipe) userId: number): Promise<PostModel[]> {
+  public getNewsFeed(@Param('userId') userId: string): Promise<PostModel[]> {
     return this.postService.getNewsFeedByUserId(userId);
   }
 
@@ -28,16 +28,13 @@ export class PostController {
 
   @UseGuards(UserOwnsPostGuard)
   @Delete(':postId')
-  public deletePost(@Param('postId', ParseIntPipe) postId: number): Promise<PostModel> {
+  public deletePost(@Param('postId') postId: string): Promise<PostModel> {
     return this.postService.deletePost(postId);
   }
 
   @UseGuards(UserOwnsPostGuard)
   @Put(':postId')
-  public updatePost(
-    @Param('postId', ParseIntPipe) postId: number,
-    @Body() updatePostDto: UpdatePostDto,
-  ): Promise<PostModel> {
+  public updatePost(@Param('postId') postId: string, @Body() updatePostDto: UpdatePostDto): Promise<PostModel> {
     return this.postService.updatePost(postId, updatePostDto);
   }
 }

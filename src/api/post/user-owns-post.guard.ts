@@ -9,13 +9,13 @@ export class UserOwnsPostGuard implements CanActivate {
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     const jwt: string = context.switchToHttp().getRequest().headers.authorization.split(' ')[1] as string;
-    const decodedJwt = this.jwtService.decode(jwt) as {id: number};
+    const decodedJwt = this.jwtService.decode(jwt) as {id: string};
     const userWithPosts = await this.userService.getUserWithPosts(decodedJwt.id);
     const resourceId = context.switchToHttp().getRequest().params.postId as string;
     if (userWithPosts) {
       let shouldActivate = false;
       _.forEach(userWithPosts.posts, (post) => {
-        if (post.id === parseInt(resourceId)) {
+        if (post.id === resourceId) {
           shouldActivate = true;
         }
       });
