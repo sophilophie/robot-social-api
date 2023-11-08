@@ -159,19 +159,31 @@ export class UserService {
         `,
         [createFriendRequestDto.requestorId, createFriendRequestDto.requesteeId],
       );
-      return this.friendRequestRepository.findOne({where: {requestor: requestorUser, requestee: requesteeUser}});
+      const resultingRequest = await this.friendRequestRepository
+        .createQueryBuilder('friend_request')
+        .select(['friend_request.id', 'friend_request.dateCreated'])
+        .where('friend_request.requestorId = :requestorId AND friend_request.requesteeId = :requesteeId', {
+          requestorId: requestorUser.id,
+          requesteeId: requesteeUser.id,
+        })
+        .getOne();
+      if (resultingRequest) {
+        delete requesteeUser.password;
+        resultingRequest.requestee = requesteeUser;
+      }
+      return resultingRequest;
     }
     throw new NotFoundException();
   }
 
-  public async createFriendship(friendship: CreateFriendshipDto): Promise<UserModel | null> {
+  public async createFriendship(friendship: CreateFriendshipDto): Promise<FriendshipModel | null> {
     const updateUser = await this.getUser(friendship.requesteeId);
     const hasRequest = !!_.find(updateUser?.requestsReceived, {requestor: {id: friendship.requestorId}});
     if (hasRequest) {
-      if (_.some(updateUser?.friendships, (friend: FriendshipModel) => friend.friend.id === friendship.requestorId)) {
+      if (_.some(updateUser?.friendships, (friend: FriendshipModel) => friend.friend?.id === friendship.requestorId)) {
         return updateUser;
       } else {
-        await this.userRepository.query(
+        await this.friendshipRepository.query(
           `
             INSERT INTO "friendship" ("userId", "friendId")
             VALUES ($1, $2)
@@ -186,7 +198,13 @@ export class UserService {
           `,
           [friendship.requesteeId, friendship.requestorId],
         );
-        return this.getUser(friendship.requesteeId);
+        const newFriendship = await this.friendshipRepository.findOne({
+          where: {user: {id: friendship.requesteeId}, friend: {id: friendship.requestorId}},
+          relations: {user: true, friend: true},
+        });
+        delete newFriendship?.user;
+        delete newFriendship?.friend?.password;
+        return newFriendship;
       }
     }
     throw new NotFoundException();

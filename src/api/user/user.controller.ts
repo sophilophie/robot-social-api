@@ -23,6 +23,7 @@ import {CreateFriendshipDto} from './dto/create-friendship.dto';
 import {SameUserAuthGuard} from './same-user-auth.guard';
 import {CreateFriendRequestDto} from './dto/create-friend-request.dto';
 import {FriendRequestModel} from './entity/friend-request.entity';
+import {FriendshipModel} from './entity/friendship.entity';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('users')
@@ -51,7 +52,7 @@ export class UserController {
   }
 
   @Post('friendship')
-  public postUserFriendship(@Body() createFriendshipDto: CreateFriendshipDto): Promise<UserModel | null> {
+  public postUserFriendship(@Body() createFriendshipDto: CreateFriendshipDto): Promise<FriendshipModel | null> {
     return this.userService.createFriendship(createFriendshipDto);
   }
 

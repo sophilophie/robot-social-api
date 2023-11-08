@@ -12,10 +12,10 @@ export class FriendshipModel {
   @ManyToOne(() => UserModel, (user: UserModel) => user.friendships, {
     onDelete: 'CASCADE',
   })
-  public user: UserModel;
+  public user?: UserModel;
 
   @ManyToOne(() => UserModel, (user: UserModel) => user.friendships, {
     onDelete: 'CASCADE',
   })
-  public friend: UserModel;
+  public friend?: UserModel;
 }
