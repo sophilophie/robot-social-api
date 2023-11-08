@@ -15,7 +15,7 @@ export class PostService {
     private readonly userService: UserService,
   ) {}
 
-  public async getPostsByUserId(userId: number): Promise<PostModel[]> {
+  public async getPostsByUserId(userId: string): Promise<PostModel[]> {
     const userPosts = await this.postRepository.find({where: {user: {id: userId}}});
     return _.orderBy(userPosts, ['dateUpdated'], ['desc']);
   }
@@ -33,7 +33,7 @@ export class PostService {
     throw new NotFoundException();
   }
 
-  public async deletePost(postId: number): Promise<PostModel> {
+  public async deletePost(postId: string): Promise<PostModel> {
     const deletePost = await this.postRepository.findOne({where: {id: postId}});
     if (deletePost) {
       return this.postRepository.remove(deletePost);
@@ -41,7 +41,7 @@ export class PostService {
     throw new NotFoundException();
   }
 
-  public async updatePost(postId: number, updatePostDto: UpdatePostDto): Promise<PostModel> {
+  public async updatePost(postId: string, updatePostDto: UpdatePostDto): Promise<PostModel> {
     const updatePost = await this.postRepository.findOne({where: {id: postId}});
     if (updatePost) {
       await this.postRepository.update(postId, updatePostDto);
@@ -50,7 +50,7 @@ export class PostService {
     throw new NotFoundException();
   }
 
-  public async getNewsFeedByUserId(userId: number): Promise<PostModel[]> {
+  public async getNewsFeedByUserId(userId: string): Promise<PostModel[]> {
     let newsFeed: PostModel[] = [];
     const requestingUser = await this.userService.getUser(userId);
     _.forEach(requestingUser?.friendships, async (friendships) => {

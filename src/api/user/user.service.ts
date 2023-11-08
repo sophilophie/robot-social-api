@@ -25,7 +25,7 @@ export class UserService {
     private readonly jwtService: JwtService,
   ) {}
 
-  public async getUser(userId: number): Promise<UserModel | null> {
+  public async getUser(userId: string): Promise<UserModel | null> {
     const user = await this.userRepository.findOne({
       select: {
         firstName: true,
@@ -47,7 +47,7 @@ export class UserService {
     throw new NotFoundException();
   }
 
-  public async getUserWithPosts(userId: number): Promise<UserModel | null> {
+  public async getUserWithPosts(userId: string): Promise<UserModel | null> {
     const user = await this.userRepository.findOne({where: {id: userId}, relations: {posts: true}});
     return user;
   }
@@ -130,7 +130,7 @@ export class UserService {
     throw new InternalServerErrorException();
   }
 
-  public async updateUser(userId: number, user: UpdateUserDto): Promise<UserModel | null> {
+  public async updateUser(userId: string, user: UpdateUserDto): Promise<UserModel | null> {
     const updateUser = await this.userRepository.findOne({where: {id: userId}});
     if (updateUser) {
       await this.userRepository.update(userId, user);
@@ -140,7 +140,7 @@ export class UserService {
     throw new NotFoundException();
   }
 
-  public async deleteUser(userId: number): Promise<UserModel> {
+  public async deleteUser(userId: string): Promise<UserModel> {
     const deleteUser = await this.userRepository.findOne({where: {id: userId}});
     if (deleteUser) {
       return this.userRepository.remove(deleteUser);

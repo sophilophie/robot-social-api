@@ -6,33 +6,12 @@ import {Repository} from 'typeorm';
 import {UserModel} from '../../src/api/user/entity/user.entity';
 
 let accessToken: string;
+let userOneId: string;
+let userTwoId: string;
 let userRepository: Repository<UserModel>;
 
 describe('user (e2e)', () => {
   let app: INestApplication;
-  const expectedUser = {
-    username: 'TestUser1',
-    firstName: 'Test',
-    lastName: 'User',
-    email: 'test@email.com',
-    id: 1,
-  };
-
-  const expectedUserAndFriends = {
-    ...expectedUser,
-    friendships: [
-      {
-        username: 'TestUser2',
-        firstName: 'Test2',
-        lastName: 'User2',
-        email: 'test2@email.com',
-        id: 2,
-      },
-    ],
-    requestedFriends: [],
-    requestsReceived: [],
-    posts: [],
-  };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -49,7 +28,7 @@ describe('user (e2e)', () => {
     await app.close();
   });
 
-  it('POST /users', () => {
+  it('POST /users', async () => {
     const newUserOne = {
       username: 'TestUser1',
       firstName: 'Test',
@@ -57,28 +36,24 @@ describe('user (e2e)', () => {
       email: 'test@email.com',
       password: 'TestPassword01',
     };
-    return request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/users')
       .send(newUserOne)
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .expect(201)
       .expect((res) => {
-        expect(res.body.user.id).toEqual(expectedUser.id);
-        expect(res.body.user.username).toEqual(expectedUser.username);
-        expect(res.body.user.firstName).toEqual(expectedUser.firstName);
-        expect(res.body.user.lastName).toEqual(expectedUser.lastName);
-        expect(res.body.user.email).toEqual(expectedUser.email);
+        expect(res.body.user.username).toEqual('TestUser1');
+        expect(res.body.user.firstName).toEqual('Test');
+        expect(res.body.user.lastName).toEqual('User');
+        expect(res.body.user.email).toEqual('test@email.com');
         expect(res.body.access_token).toBeTruthy();
         accessToken = res.body.access_token as string;
+        userOneId = res.body.user.id as string;
       });
   });
 
   it('POST /users/friend-request', async () => {
-    const friendRequest = {
-      requestorId: 1,
-      requesteeId: 2,
-    };
     const newUserTwo = {
       username: 'TestUser2',
       firstName: 'Test2',
@@ -92,14 +67,20 @@ describe('user (e2e)', () => {
       .send(newUserTwo)
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
-      .expect(201);
+      .expect(201)
+      .expect((res) => {
+        userTwoId = res.body.user.id as string;
+      });
     await request(app.getHttpServer())
       .post('/users/friend-request')
-      .send(friendRequest)
+      .send({
+        requestorId: userOneId,
+        requesteeId: userTwoId,
+      })
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(201);
     await request(app.getHttpServer())
-      .get('/users/1')
+      .get(`/users/${userOneId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200)
       .expect((res) => {
@@ -109,8 +90,8 @@ describe('user (e2e)', () => {
 
   it('POST /users/friendship', async () => {
     const newFriendship = {
-      requestorId: 1,
-      requesteeId: 2,
+      requestorId: userOneId,
+      requesteeId: userTwoId,
     };
     await request(app.getHttpServer())
       .post('/users/friendship')
@@ -120,28 +101,35 @@ describe('user (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(201)
       .expect((res) => {
-        expect(res.body.friendships[0].id).toBe(1);
+        expect(res.body.friend.id).toBe(userOneId);
       });
   });
 
   it('GET /users/:id', () => {
     return request(app.getHttpServer())
-      .get('/users/1')
+      .get(`/users/${userOneId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body.friendships[0].id).toBe(1);
-        expect(res.body.id).toBe(1);
+        expect(res.body.friendships[0].friend.id).toBe(userTwoId);
+        expect(res.body.id).toBe(userOneId);
       });
   });
 
   it('GET /users', () => {
+    const expectedUser = {
+      username: 'TestUser1',
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@email.com',
+      id: userOneId,
+    };
     const expectedUserTwo = {
       username: 'TestUser2',
       firstName: 'Test2',
       lastName: 'User2',
       email: 'test2@email.com',
-      id: 2,
+      id: userTwoId,
     };
     return request(app.getHttpServer())
       .get('/users')
@@ -156,14 +144,14 @@ describe('user (e2e)', () => {
   it('GET /users/search', () => {
     const expectedResponse = [
       {
-        id: 1,
+        id: userOneId,
         username: 'TestUser1',
         firstName: 'Test',
         lastName: 'User',
         email: 'test@email.com',
       },
       {
-        id: 2,
+        id: userTwoId,
         username: 'TestUser2',
         firstName: 'Test2',
         lastName: 'User2',
@@ -181,7 +169,7 @@ describe('user (e2e)', () => {
 
   it('PUT /users/:id', () => {
     return request(app.getHttpServer())
-      .put('/users/1')
+      .put(`/users/${userOneId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({email: 'newTest@email.com'})
       .expect(200)
@@ -192,11 +180,14 @@ describe('user (e2e)', () => {
 
   it('DELETE /users/:id', () => {
     return request(app.getHttpServer())
-      .delete('/users/1')
+      .delete(`/users/${userOneId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200)
       .then(() => {
-        return request(app.getHttpServer()).get('/users/1').set('Authorization', `Bearer ${accessToken}`).expect(404);
+        return request(app.getHttpServer())
+          .get(`/users/${userOneId}`)
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(404);
       });
   });
 });

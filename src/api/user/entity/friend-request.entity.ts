@@ -3,8 +3,8 @@ import {UserModel} from './user.entity';
 
 @Entity('friend_request')
 export class FriendRequestModel {
-  @PrimaryGeneratedColumn()
-  public id: number;
+  @PrimaryGeneratedColumn('uuid')
+  public id: string;
 
   @CreateDateColumn()
   public dateCreated: Date;

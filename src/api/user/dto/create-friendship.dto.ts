@@ -1,11 +1,11 @@
-import {IsNotEmpty, IsNumber} from 'class-validator';
+import {IsNotEmpty, IsUUID} from 'class-validator';
 
 export class CreateFriendshipDto {
-  @IsNumber()
+  @IsUUID()
   @IsNotEmpty()
-  public requestorId: number;
+  public requestorId: string;
 
-  @IsNumber()
+  @IsUUID()
   @IsNotEmpty()
-  public requesteeId: number;
+  public requesteeId: string;
 }
