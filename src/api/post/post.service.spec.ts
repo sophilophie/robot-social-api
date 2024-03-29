@@ -9,13 +9,13 @@ describe('PostService', () => {
   let mockPostRepository: Partial<Repository<PostModel>>, mockUserService: Partial<UserService>;
 
   const mockPost = {
-    id: 1,
+    id: '1',
     content: 'TestPost',
     timePosted: '2023-08-19T02:58:02.653Z',
   };
 
   const mockUser = {
-    id: 0,
+    id: '0',
     dateCreated: new Date(),
     dateUpdated: new Date(),
     firstName: 'Test',
@@ -56,14 +56,14 @@ describe('PostService', () => {
   });
 
   it('should get posts by user id', async () => {
-    await service.getPostsByUserId(1);
+    await service.getPostsByUserId('1');
     expect(mockPostRepository.find).toHaveBeenCalled();
   });
 
   it('should create post', async () => {
     const createdPost = {
       content: 'TestPost',
-      userId: 1,
+      userId: '1',
     };
     await service.createPost(createdPost);
     expect(mockUserService.getUser).toHaveBeenCalled();
@@ -71,19 +71,19 @@ describe('PostService', () => {
   });
 
   it('should delete post', async () => {
-    await service.deletePost(1);
+    await service.deletePost('1');
     expect(mockPostRepository.findOne).toHaveBeenCalled();
     expect(mockPostRepository.remove).toHaveBeenCalled();
   });
 
   it('should update post', async () => {
-    await service.updatePost(1, {content: 'EditedTest'});
+    await service.updatePost('1', {content: 'EditedTest'});
     expect(mockPostRepository.findOne).toHaveBeenCalled();
     expect(mockPostRepository.update).toHaveBeenCalled();
   });
 
   it('should get news feed', async () => {
-    await service.getNewsFeedByUserId(1);
+    await service.getNewsFeedByUserId('1');
     expect(mockUserService.getUser).toHaveBeenCalled();
     expect(mockPostRepository.find).toHaveBeenCalled();
   });
