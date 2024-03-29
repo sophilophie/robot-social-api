@@ -35,11 +35,8 @@ export class UserController {
   }
 
   @Get('search')
-  public userSearch(
-    @Query('searchTerm') searchTerm: string,
-    @Query('userId') userId: string,
-  ): Promise<UserModel[] | null> {
-    return this.userService.search(searchTerm, userId);
+  public userSearch(@Query('searchTerm') searchTerm: string): Promise<UserModel[] | null> {
+    return this.userService.search(searchTerm);
   }
 
   @Get(':userId')

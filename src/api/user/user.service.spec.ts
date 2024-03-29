@@ -16,7 +16,7 @@ describe('UserService', () => {
     mockFriendshipRepository: Partial<Repository<FriendshipModel>>;
 
   const mockUser: UserModel = {
-    id: '0',
+    id: 0,
     dateCreated: new Date(),
     dateUpdated: new Date(),
     firstName: 'Test',
@@ -89,7 +89,7 @@ describe('UserService', () => {
   });
 
   it('should find one user by id', async () => {
-    const result: UserModel | null = await service.getUser('0');
+    const result: UserModel | null = await service.getUser(0);
     expect(mockUserRepository.findOne).toHaveBeenCalled();
     expect(mockFriendshipRepository.find).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
@@ -98,7 +98,7 @@ describe('UserService', () => {
   it('should throw 404 if user is not found in read, update, or destroy operations', async () => {
     mockUserRepository.findOne = jest.fn();
     try {
-      await service.getUser('0');
+      await service.getUser(0);
     } catch (error) {
       expect(error.status).toBe(404);
     }
@@ -112,13 +112,13 @@ describe('UserService', () => {
     }
 
     try {
-      await service.updateUser('0', {username: 'notFound'});
+      await service.updateUser(0, {username: 'notFound'});
     } catch (error) {
       expect(error.status).toBe(404);
     }
 
     try {
-      await service.deleteUser('0');
+      await service.deleteUser(0);
     } catch (error) {
       expect(error.status).toBe(404);
     }
@@ -165,14 +165,14 @@ describe('UserService', () => {
 
   it('should update an existing user, returning the entire new user object', async () => {
     const updateUser: UpdateUserDto = {username: 'userName0'};
-    await service.updateUser('0', updateUser);
+    await service.updateUser(0, updateUser);
     expect(mockUserRepository.findOne).toHaveBeenCalled();
-    expect(mockUserRepository.update).toHaveBeenCalledWith('0', updateUser);
+    expect(mockUserRepository.update).toHaveBeenCalledWith(0, updateUser);
     expect(mockFriendshipRepository.find).toHaveBeenCalled();
   });
 
   it('should delete an existing user, reterning the deleted user', async () => {
-    await service.deleteUser('0');
+    await service.deleteUser(0);
     expect(mockUserRepository.findOne).toHaveBeenCalled();
     expect(mockUserRepository.remove).toHaveBeenCalledWith(mockUser);
   });

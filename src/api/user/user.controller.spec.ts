@@ -49,14 +49,14 @@ describe('UserController', () => {
   it('should invoke UserService to do business logic', () => {
     controller.getUsers();
     expect(mockUserService.getUsers).toHaveBeenCalled();
-    controller.getUser('0');
-    expect(mockUserService.getUser).toHaveBeenCalledWith('0');
+    controller.getUser(0);
+    expect(mockUserService.getUser).toHaveBeenCalledWith(0);
     controller.postUser(testCreateUserDto);
     expect(mockUserService.createUser).toHaveBeenCalledWith(testCreateUserDto);
-    controller.putUser('0', testPutUserDto);
-    expect(mockUserService.updateUser).toHaveBeenCalledWith('0', testPutUserDto);
-    controller.deleteUser('0');
-    expect(mockUserService.deleteUser).toHaveBeenCalledWith('0');
+    controller.putUser(0, testPutUserDto);
+    expect(mockUserService.updateUser).toHaveBeenCalledWith(0, testPutUserDto);
+    controller.deleteUser(0);
+    expect(mockUserService.deleteUser).toHaveBeenCalledWith(0);
     controller.userSearch('searchTerm');
     expect(mockUserService.search).toHaveBeenCalled();
   });

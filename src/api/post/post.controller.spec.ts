@@ -10,7 +10,7 @@ describe('PostController', () => {
 
   const mockPost = {
     content: 'This is a test post',
-    userId: '1',
+    userId: 1,
   };
   beforeEach(async () => {
     mockPostService = {
@@ -40,13 +40,13 @@ describe('PostController', () => {
   it('should do business logic in post.service', () => {
     controller.createPost(mockPost);
     expect(mockPostService.createPost).toHaveBeenCalled();
-    controller.getPostsByUserId('1');
+    controller.getPostsByUserId(1);
     expect(mockPostService.getPostsByUserId).toHaveBeenCalled();
-    controller.deletePost('1');
+    controller.deletePost(1);
     expect(mockPostService.deletePost).toHaveBeenCalled();
-    controller.updatePost('1', mockPost);
+    controller.updatePost(1, mockPost);
     expect(mockPostService.updatePost).toHaveBeenCalled();
-    controller.getNewsFeed('1');
+    controller.getNewsFeed(1);
     expect(mockPostService.getNewsFeedByUserId).toHaveBeenCalled();
   });
 });
