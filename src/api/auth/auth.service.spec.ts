@@ -12,7 +12,7 @@ describe('AuthService', () => {
   let mockUserService: any, mockJwtService: any;
 
   const mockUser: UserModel = {
-    id: 0,
+    id: '0',
     dateCreated: new Date(),
     dateUpdated: new Date(),
     firstName: 'Test',
@@ -39,7 +39,7 @@ describe('AuthService', () => {
     };
     mockJwtService = {
       sign: jest.fn().mockReturnValue('JWT_TEST_HASH'),
-      decode: jest.fn().mockReturnValue({id: 0, username: 'testUser0'}),
+      decode: jest.fn().mockReturnValue({id: '0', username: 'testUser0'}),
     };
     const module: TestingModule = await Test.createTestingModule({
       providers: [AuthService],
@@ -66,7 +66,7 @@ describe('AuthService', () => {
     const result = await service.login(mockLogin);
     expect(mockJwtService.sign).toHaveBeenCalledWith({
       username: 'testUser0',
-      id: 0,
+      id: '0',
     });
     expect(result).toEqual(expectedResult);
   });
@@ -98,7 +98,7 @@ describe('AuthService', () => {
       access_token: 'JWT_TEST_HASH_PRE_REFRESH',
     });
     expect(mockJwtService.decode).toHaveBeenCalledWith('JWT_TEST_HASH_PRE_REFRESH');
-    expect(mockUserService.getUser).toHaveBeenCalledWith(0);
+    expect(mockUserService.getUser).toHaveBeenCalledWith('0');
     expect(result).toEqual(expectedResult);
   });
 
