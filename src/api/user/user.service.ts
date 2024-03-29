@@ -75,14 +75,20 @@ export class UserService {
     return this.userRepository.find({select: ['firstName', 'lastName', 'username', 'email', 'id']});
   }
 
-  public search(searchTerm: string): Promise<UserModel[] | null> {
+  public search(searchTerm: string, userId: string): Promise<UserModel[] | null> {
     const query = this.userRepository
       .createQueryBuilder('user')
       .select(['user.id', 'user.email', 'user.username', 'user.firstName', 'user.lastName'])
       .where(
-        'LOWER(user.username) LIKE :term OR LOWER(user.email) LIKE :term OR LOWER(user.firstName) LIKE :term OR LOWER(user.lastName) LIKE :term',
+        `NOT user.id = :id AND (
+          LOWER(user.username) LIKE :term
+          OR LOWER(user.email) LIKE :term
+          OR LOWER(user.firstName) LIKE :term
+          OR LOWER(user.lastName) LIKE :term
+        )`,
         {
           term: `%${searchTerm.toLowerCase()}%`,
+          id: userId,
         },
       );
 
@@ -99,7 +105,6 @@ export class UserService {
         },
       );
     }
-
     return query.getMany();
   }
 
