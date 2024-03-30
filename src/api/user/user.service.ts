@@ -1,4 +1,10 @@
-import {ConflictException, Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
 import {UserModel} from './entity/user.entity';
@@ -76,6 +82,9 @@ export class UserService {
   }
 
   public search(searchTerm: string, userId: string): Promise<UserModel[] | null> {
+    if (!userId || !searchTerm) {
+      throw new BadRequestException();
+    }
     const query = this.userRepository
       .createQueryBuilder('user')
       .select(['user.id', 'user.email', 'user.username', 'user.firstName', 'user.lastName'])
